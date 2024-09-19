@@ -1,4 +1,9 @@
+// HERE import
 import { useEffect, useState } from "react";
+
+import classNames from "classnames";
+
+import * as Form from "@radix-ui/react-form";
 
 import {
   Box,
@@ -13,11 +18,15 @@ import {
   AlertDialog,
   Button,
   Inset,
-  RadioCards,
+  ScrollArea,
+  TextField,
+  DataList,
+  Popover,
+  Separator,
 } from "@radix-ui/themes";
 
-const AddSVG = () => (
-  // <✪> AddSVG
+// <✪> AddButtonSVG
+const AddButtonSVG = () => (
   <>
     <svg
       width="24px"
@@ -35,10 +44,68 @@ const AddSVG = () => (
       />
     </svg>
   </>
-); //  . . . . . . . . . . . . . . . . . .
+);
 
+// <✪> CrescerFlowerSVG
+const CrescerFlowerSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    id="CFSVG"
+    data-name="CrescerFlowerSVG"
+    viewBox="0 0 120 100"
+    width="42px"
+    height="35px"
+    opacity="1"
+  >
+    <defs>
+      <style>
+        {
+          ".cls-2{stroke:#000;stroke-miterlimit:10;stroke-width:2px;fill:#f26122}"
+        }
+      </style>
+    </defs>
+    <path
+      d="M89.3 47.9c7.9.6 19.2 2.8 20.1 12.5 1.1 9-6.1 19.1-15.7 18.7-4.3-.2-7.7-3.2-10.8-6.1-2.6-2.4-5.3-4.7-7.9-7.1-3.6-3.2-10.3-8.3-5.9-13.3 2.3-2.4 6.3-2.7 9.5-3.3 3.5-.5 7-1.3 10.5-1.4h.2Z"
+      style={{
+        fill: "#f16122",
+        stroke: "#000",
+        strokeMiterlimit: 10,
+        strokeWidth: 2,
+      }}
+    />
+    <path
+      d="M58.4 28.9c.1 4.4.8 11.3-2.7 14.4-2 1.7-4.9 2.1-7.3.8-1.6-.8-3.1-2.2-4.5-3.5-3.8-3.8-7.8-7.3-11-11.6-8.7-11.6 3.7-24.4 16.2-22.3 11.2 2.3 8.7 13.2 9.3 21.8v.4ZM101.9 29.7c0 5.4-2.7 9.4-7.5 10.7-7.7 2.1-15.4 3.9-23.2 5.7-4.2.9-8.5-3.5-7-7.3C67 31.3 70.8 24.3 77.1 19c4.7-3.9 10-5.3 15.7-2.5s8.5 7.7 9.1 13.1ZM29.1 69.6c-8.1.4-17.7-5.3-17.9-14.1-.2-7.3 6.9-12.3 13.6-12.8 7.8-.7 19.2 1.9 24.3 7.9 1.9 3 1.7 7.7-1 10.2-2.7 2.3-6.4 3.5-9.6 5.1-3.2 1.3-6.1 3.1-9.1 3.7h-.2ZM73.3 81.1c.5 8.7-9.1 13.6-16.5 13.5-6 0-13.2-3.8-14.6-10.1-1.3-6.2 2.9-12 6.2-17 4.1-6.8 5.7-4.8 12.5-5.9 5.9-1.7 7.6 3 9.3 8.1 1.1 3.7 2.6 7.3 3.2 11v.4Z"
+      className="cls-2"
+    />
+    <path
+      d="M70.6 51.5c0 6.9-5.5 13.1-11.3 12.9-5.6-.1-10.9-6.1-10.9-12.2s5-12.1 11.4-11.9c6.3.1 10.9 4.8 10.8 11.3Z"
+      style={{
+        stroke: "#000",
+        strokeMiterlimit: 10,
+        strokeWidth: 2,
+        fill: "#f6eb00",
+      }}
+    />
+  </svg>
+);
+
+// <✪> DotsSVG
+const DotsSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={24}
+    height={24}
+    viewBox="0 0 256 256"
+  >
+    <path
+      fill="#eceeec"
+      d="M76 128a12 12 0 1 1-12-12 12.014 12.014 0 0 1 12 12Zm52-12a12 12 0 1 0 12 12 12.014 12.014 0 0 0-12-12Zm64 0a12 12 0 1 0 12 12 12.014 12.014 0 0 0-12-12Z"
+    />
+  </svg>
+);
+
+// [✪] patients
 const patients = [
-  // [✪] patients
   {
     id: 1,
     name: "John Doe",
@@ -89,58 +156,18 @@ const patients = [
     expiringDate: "2024-06-30",
     info: "Marketing specialist with a creative flair.",
   },
-];
+]; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// const UserCards = () => {
-//   // ✪ UserCards
-//   const [activeUserId, setActiveUserId] = useState(null);
-
-//   const handleCardClick = (userId) => {
-//     setActiveUserId(userId);
-//   };
-
-//   return (
-//     <div className="flex space-x-8">
-//       {/* User Cards Column */}
-
-//       <div className="flex flex-col space-y-4">
-//         {users.map((user) => (
-//           <div
-//             key={user.id}
-//             onClick={() => handleCardClick(user.id)}
-//             className={`p-4 border rounded-lg cursor-pointer ${
-//               activeUserId === user.id ? " border-blue-400" : ""
-//             } hover:shadow-lg`}
-//           >
-//             <h3 className="text-lg font-semibold">{user.name}</h3>
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* Profile Information */}
-//       <div className="flex-1">
-//         {activeUserId && (
-//           <div className="p-6 border rounded-lg bg-gray-50">
-//             <h2 className="text-2xl font-bold">
-//               {users.find((user) => user.id === activeUserId).name}
-//             </h2>
-//             <p className="mt-2 text-gray-700">
-//               {users.find((user) => user.id === activeUserId).profile}
-//             </p>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }; //  . . . . . . . . . . . . . . . . . .
-
-const DeleteButton = () => (
-  // (✪) DeleteButton
+// (✪) RemovePatient
+const RemovePatient = () => (
   <>
     <AlertDialog.Root>
       <AlertDialog.Trigger>
-        <Button className="bg-red-900 size-6">D</Button>
+        <Button color="crimson" variant="ghost">
+          Remove
+        </Button>
       </AlertDialog.Trigger>
+
       <AlertDialog.Content maxWidth="500px">
         <AlertDialog.Title>Delete Users</AlertDialog.Title>
         <AlertDialog.Description size="2">
@@ -189,45 +216,58 @@ const DeleteButton = () => (
   </>
 ); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-const MainTable = () => (
-  // (✪) MainTable
+// (✪) PopoverAction
+const PopoverAction = () => (
+  <Flex gap="4" align="center">
+    <Popover.Root>
+      <Popover.Trigger>
+        <IconButton variant="ghost">
+          <DotsSVG />
+        </IconButton>
+      </Popover.Trigger>
 
-  <Table.Root>
-    <Table.Header>
-      <Table.Row>
-        <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
-      </Table.Row>
-    </Table.Header>
+      <Popover.Content
+        size="1"
+        maxWidth="300px"
+        className="flex flex-col items-center"
+      >
+        <Button color="orange" variant="ghost">
+          Edit profile
+        </Button>
+        <Separator orientation="horizontal" size="4" className=" my-4" />
+        {/* <Button color="crimson" variant="ghost">
+          Remove
+        </Button> */}
 
-    <Table.Body>
-      {patients.map((patient) => (
-        <Table.Row key={patient.id}>
-          <Table.RowHeaderCell>
-            <PatientCard patient={patient} />
-          </Table.RowHeaderCell>
-        </Table.Row>
-      ))}
-    </Table.Body>
-  </Table.Root>
-); //  . . . . . . . . . . . . . . . . . .
+        <RemovePatient />
+      </Popover.Content>
+    </Popover.Root>
+  </Flex>
+); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // (✪) PatientCard
-const PatientCard = ({ patient }) => (
-  // NOTE Use the asChild prop to render the card as a link or a button.
+const PatientCard = ({ patient, activeUserId, setActiveUserId }) => {
+  // WARN No type
 
-  // WARN
-  //  Div size is wrong
-  //  No type
+  const handleCardClick = (ID) => {
+    setActiveUserId(ID);
+    console.log("patient: ", ID); // [LOG]  card click log
+  };
 
-  <Box maxWidth="420px">
-    <Card>
-      {/* [LOG] */}
-      <div
-        onClick={() => console.log("patient: ", patient.name)}
+  return (
+    <Box maxWidth="440px">
+      <Card
+        variant="surface"
+        onClick={() => handleCardClick(patient.id)}
         key={patient.id}
-        className={`cursor-pointer ${
-          patient.id ? " border-blue-400" : ""
-        } hover:shadow-lg`}
+        className={classNames(
+          "cursor-pointer border hover:shadow-lg",
+          `${
+            activeUserId === patient.id
+              ? "border-orange-500"
+              : "border-transparent"
+          }`
+        )}
       >
         <Flex gap="3" align="center" className="justify-between">
           <Flex gap="3" align="center" className="justify-between">
@@ -248,58 +288,127 @@ const PatientCard = ({ patient }) => (
           </Flex>
 
           <Flex align="center" gap="5">
-            <Box>
-              {/* (●) Badge */}
-              <Badge color="jade" variant="soft" radius="full" className="my-2">
-                Authorized
-              </Badge>
+            {/* (●) Badge */}
+            <Badge color="jade" variant="soft" radius="full" className="my-1 mx-3">
+              Authorized
+            </Badge>
+          </Flex>
 
-              <Text as="div" size="1" color="gray">
-                Valid Thru:
-              </Text>
-
-              <Text as="div" size="1" color="gray">
-                12/25
-              </Text>
-            </Box>
-            {/* (●) DeleteButton */}
-            <DeleteButton />
+          <Flex align="center" gap="5">
+            {/* //(○) PopoverAction */}
+            <PopoverAction />
           </Flex>
         </Flex>
+      </Card>
+    </Box>
+  );
+}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ✪ CreditCardDemo
+const CreditCardDemo = ({ cardNumber, cardHolder, expiryDate, cardType }) => {
+  // Format the card number for display
+  const formattedCardNumber = cardNumber.replace(/(\d{4})/g, "$1 ").trim();
+
+  return (
+    <div className="w-96 h-56 bg-gradient-to-r from-orange-500 to-orange-700 text-white rounded-xl shadow-lg p-6">
+      <div className="flex justify-between">
+        <h2 className="text-xl font-bold">Crescer Card</h2>
+
+        {/* //<○> CrescerFlowerSVG */}
+        <CrescerFlowerSVG />
       </div>
-    </Card>
-  </Box>
-); //  . . . . . . . . . . . . . . . . . .
 
-// const TesteComp = () => (
-//   <Flex direction="column" width="100%" gap="3">
-//     <RadioCards.Root defaultValue="1" columns={{ initial: "1", sm: "3" }}>
-//       <RadioCards.Item value="1" className="pointer-events-auto">
-//         <div onClick={() => console.log("clicked")}>
-//           <Flex direction="column" width="100%">
-//             <Text weight="bold">8-core CPU</Text>
-//             <Text>32 GB RAM</Text>
-//           </Flex>
-//         </div>
-//       </RadioCards.Item>
-//       <RadioCards.Item value="2">
-//         <Flex direction="column" width="100%">
-//           <Text weight="bold">6-core CPU</Text>
-//           <Text>24 GB RAM</Text>
-//         </Flex>
-//       </RadioCards.Item>
-//       <RadioCards.Item value="3">
-//         <Flex direction="column" width="100%">
-//           <Text weight="bold">4-core CPU</Text>
-//           <Text>16 GB RAM</Text>
-//         </Flex>
-//       </RadioCards.Item>
-//     </RadioCards.Root>
-//   </Flex>
-// );
+      <div className="mt-4">
+        <h4 className="text-sm uppercase tracking-wide">Card Number</h4>
+        <p className="text-xl font-mono mt-1">{formattedCardNumber}</p>
+      </div>
 
+      <div className="mt-2 flex justify-between">
+        <div>
+          <h4 className="text-sm uppercase tracking-wide ">Card Holder</h4>
+          <p className="text-sm">{cardHolder}</p>
+        </div>
+        <div>
+          <h4 className="text-sm uppercase tracking-wide">Expires</h4>
+          <p className="text-sm">{expiryDate}</p>
+        </div>
+      </div>
+    </div>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ✪ FormDemo
+// const FormDemo = () => (
+//   <Form.Root className="w-[500px]">
+
+//     {/* // ●  Form.Field*/}
+//     <Form.Field className="grid mb-[10px]" name="email">
+//       <div className="flex items-baseline justify-between">
+//         <Form.Label className="text-[15px] font-medium leading-[35px] text-white">
+//           Email
+//         </Form.Label>
+
+//         <Form.Message
+//           className="text-[13px] text-white opacity-[0.8]"
+//           match="valueMissing"
+//         >
+//           Please enter your email
+//         </Form.Message>
+
+//         <Form.Message
+//           className="text-[13px] text-white opacity-[0.8]"
+//           match="typeMismatch"
+//         >
+//           Please provide a valid email
+//         </Form.Message>
+//       </div>
+
+//       <Form.Control asChild>
+//         <input
+//           className="box-border w-full inline-flex h-[35px] items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none outline-none focus:shadow-[0_0_0_2px_black] "
+//           type="email"
+//           value="teste"
+//           disabled
+//         />
+//       </Form.Control>
+//     </Form.Field>
+
+//     {/* // ●  Form.Field*/}
+//     <Form.Field className="grid mb-[10px]" name="question">
+//       <div className="flex items-baseline justify-between">
+//         <Form.Label className="text-[15px] font-medium leading-[35px] text-white">
+//           Question
+//         </Form.Label>
+//         <Form.Message
+//           className="text-[13px] text-white opacity-[0.8]"
+//           match="valueMissing"
+//         >
+//           Please enter a question
+//         </Form.Message>
+//       </div>
+//       <Form.Control asChild>
+//         <TextField.Root placeholder="Search the docs…" type="email">
+//           <TextField.Slot>✿❀</TextField.Slot>
+//         </TextField.Root>
+//       </Form.Control>
+//     </Form.Field>
+
+//     {/* // ●  Form.Submit*/}
+//     <Form.Submit asChild>
+//       <button className="box-border w-full text-violet11 shadow-blackA4 hover:bg-mauve3 inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-medium leading-none shadow-[0_2px_10px] focus:shadow-[0_0_0_2px] focus:shadow-black focus:outline-none mt-[10px]">
+//         Save
+//       </button>
+//     </Form.Submit>
+//   </Form.Root>
+// ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+
+// ★ Home
 const Home = () => {
-  // ★ Home
+  // WARN No type
+
+  const [activeUserId, setActiveUserId] = useState(null);
 
   useEffect(() => {
     console.log("Home Page"); // [LOG] Home Page log ✿ ❀
@@ -307,25 +416,86 @@ const Home = () => {
 
   return (
     //────────DOM─────➤
-    <>
+    <Flex gap="4" align="center" className="justify-evenly">
+      {/*//_PIN_ lEFT BOX */}
       <Box maxWidth="520px">
-        <Card className=" pt-8 pb-16 px-8">
-          <Flex gap="3" align="center" className="justify-between">
-            <Heading color="orange">Patients </Heading>
-            <IconButton color="orange">
-              <AddSVG />
-            </IconButton>
-          </Flex>
+        <Card className=" pt-8 pb-16 pl-12">
+          <ScrollArea
+            type="auto"
+            scrollbars="vertical"
+            radius="full"
+            style={{ height: 650 }}
+            className="pr-10"
+          >
+            <Flex gap="3" align="center" className="justify-between">
+              <Heading color="orange">Patients </Heading>
+              <IconButton color="orange">
+                <AddButtonSVG />
+              </IconButton>
+            </Flex>
 
-          <MainTable />
-          {/* <TesteComp /> */}
-          {/* <UserCards /> */}
+            <Table.Root>
+              <Table.Header>
+                <Table.Row>
+                  <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
+                </Table.Row>
+              </Table.Header>
+
+              <Table.Body>
+                {patients.map((patient) => (
+                  <Table.Row key={patient.id}>
+                    <Table.RowHeaderCell>
+                      <PatientCard
+                        patient={patient}
+                        activeUserId={activeUserId}
+                        setActiveUserId={setActiveUserId}
+                      />
+                    </Table.RowHeaderCell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </ScrollArea>
         </Card>
       </Box>
 
-      <h1> ✿ ❀ </h1>
-    </>
+      {/*//_PIN_ RIGHT BOX */}
+      <Box maxWidth="620px">
+        <Flex direction="column" gap="2">
+          {/*//_PIN_ TOP CARD */}
+          <Card className="py-8 px-8 flex justify-center">
+            {/* {activeUserId && (
+              <div className="p-6 rounded-lg">
+                <h2 className="text-2xl font-bold">
+                  {patients.find((patient) => patient.id === activeUserId).name}
+                </h2>
+                <p className="mt-2 text-gray-700">
+                  {patients.find((patient) => patient.id === activeUserId).age}
+                </p>
+              </div>
+            )} */}
+
+            {/* // ○ CreditCardDemo*/}
+            <CreditCardDemo
+              cardNumber="1"
+              cardHolder="John Doe"
+              expiryDate="12/24"
+              cardType="Visa" // You can switch between 'Visa' and 'MasterCard'
+            />
+          </Card>
+
+          {/*//_PIN_ BOTTOM CARD */}
+          <Card className=" py-8 px-8">
+            {/* <FormDemo /> */}
+            {/* // (○) PopoverAction*/}
+            <PopoverAction />
+          </Card>
+        </Flex>
+      </Box>
+
+      {/* <h1> ✿ ❀ </h1> */}
+    </Flex>
   );
-};
+}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 export default Home;

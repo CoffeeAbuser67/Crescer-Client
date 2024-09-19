@@ -1,5 +1,9 @@
-import React from "react";
+import { Spinner } from "@radix-ui/themes";
 
-const Loader = () => <>Loading...</>;
+const Loader = () => (
+  <div className="flex justify-center items-center h-screen">
+    <Spinner />
+  </div>
+);
 
 export default Loader;
