@@ -25,7 +25,7 @@ import {
   Separator,
 } from "@radix-ui/themes";
 
-// <✪> AddButtonSVG
+// <●> AddButtonSVG
 const AddButtonSVG = () => (
   <>
     <svg
@@ -46,7 +46,7 @@ const AddButtonSVG = () => (
   </>
 );
 
-// <✪> CrescerFlowerSVG
+// <●> CrescerFlowerSVG
 const CrescerFlowerSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +89,7 @@ const CrescerFlowerSVG = () => (
   </svg>
 );
 
-// <✪> DotsSVG
+// <●> DotsSVG
 const DotsSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -104,7 +104,7 @@ const DotsSVG = () => (
   </svg>
 );
 
-// [✪] patients
+// [●] patients
 const patients = [
   {
     id: 1,
@@ -246,12 +246,12 @@ const PopoverAction = () => (
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // (✪) PatientCard
-const PatientCard = ({ patient, activeUserId, setActiveUserId }) => {
+const PatientCard = ({ patient, activePatientId, setActivePatientId }) => {
   // WARN No type
 
-  const handleCardClick = (ID) => {
-    setActiveUserId(ID);
-    console.log("patient: ", ID); // [LOG]  card click log
+  const handleCardClick = (id) => {
+    setActivePatientId(id);
+    console.log("patient: ", id); // [LOG]  card click log
   };
 
   return (
@@ -263,7 +263,7 @@ const PatientCard = ({ patient, activeUserId, setActiveUserId }) => {
         className={classNames(
           "cursor-pointer border hover:shadow-lg",
           `${
-            activeUserId === patient.id
+            activePatientId === patient.id
               ? "border-orange-500"
               : "border-transparent"
           }`
@@ -305,9 +305,8 @@ const PatientCard = ({ patient, activeUserId, setActiveUserId }) => {
 }; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // ✪ CreditCardDemo
-const CreditCardDemo = ({ cardNumber, cardHolder, expiryDate, cardType }) => {
+const CreditCardDemo = ({ patientID  }) => {
   // Format the card number for display
-  const formattedCardNumber = cardNumber.replace(/(\d{4})/g, "$1 ").trim();
 
   return (
     <div className="w-96 h-56 bg-gradient-to-r from-orange-500 to-orange-700 text-white rounded-xl shadow-lg p-6">
@@ -319,23 +318,126 @@ const CreditCardDemo = ({ cardNumber, cardHolder, expiryDate, cardType }) => {
       </div>
 
       <div className="mt-4">
-        <h4 className="text-sm uppercase tracking-wide">Card Number</h4>
-        <p className="text-xl font-mono mt-1">{formattedCardNumber}</p>
+        <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
+        <p className="text-xl font-mono mt-1">
+        
+          {patients.find((patient) => patient.id === patientID)?.id}
+
+        </p>
       </div>
 
       <div className="mt-2 flex justify-between">
         <div>
           <h4 className="text-sm uppercase tracking-wide ">Card Holder</h4>
-          <p className="text-sm">{cardHolder}</p>
+          <p className="text-sm"> d </p>
         </div>
         <div>
           <h4 className="text-sm uppercase tracking-wide">Expires</h4>
-          <p className="text-sm">{expiryDate}</p>
+          <p className="text-sm">e </p>
         </div>
       </div>
     </div>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+// ★ Home
+const Home = () => {
+  // WARN No type
+
+  const [activePatientId, setActivePatientId] = useState(null);
+
+  useEffect(() => {
+    console.log("Home Page"); // [LOG] Home Page log ✿ ❀
+  }, []);
+
+  return (
+    //────────DOM─────➤
+    <Flex gap="4" align="center" className="justify-evenly">
+      {/*//_PIN_ lEFT BOX */}
+      <Box maxWidth="520px">
+        <Card className=" pt-8 pb-16 pl-12">
+          <ScrollArea
+            type="auto"
+            scrollbars="vertical"
+            radius="full"
+            style={{ height: 650 }}
+            className="pr-10"
+          >
+            <Flex gap="3" align="center" className="justify-between">
+              <Heading color="orange">Patients </Heading>
+              <IconButton color="orange">
+                <AddButtonSVG />
+              </IconButton>
+            </Flex>
+
+            <Table.Root>
+              <Table.Header>
+                <Table.Row>
+                  <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
+                </Table.Row>
+              </Table.Header>
+
+              <Table.Body>
+                {patients.map((patient) => (
+                  <Table.Row key={patient.id}>
+                    <Table.RowHeaderCell>
+                      <PatientCard
+                        patient={patient}
+                        activePatientId={activePatientId}
+                        setActivePatientId={setActivePatientId}
+                      />
+                    </Table.RowHeaderCell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </ScrollArea>
+        </Card>
+      </Box>
+
+      {/*//_PIN_ RIGHT BOX */}
+      <Box maxWidth="620px">
+        <Flex direction="column" gap="2">
+          {/*//_PIN_ TOP CARD */}
+          <Card className="py-8 px-8 flex justify-center">
+            {/* {activePatientId && (
+              <div className="p-6 rounded-lg">
+                <h2 className="text-2xl font-bold">
+                  {patients.find((patient) => patient.id === activePatientId).name}
+                </h2>
+                <p className="mt-2 text-gray-700">
+                  {patients.find((patient) => patient.id === activePatientId).age}
+                </p>
+              </div>
+            )} */}
+
+            {/* // ○ CreditCardDemo*/}
+            <CreditCardDemo
+              patientID = {activePatientId}
+            />
+
+          </Card>
+
+
+
+          {/*//_PIN_ BOTTOM CARD */}
+          <Card className=" py-8 px-8">
+            {/* <FormDemo /> */}
+            {/* // (○) PopoverAction*/}
+            <PopoverAction />
+          </Card>
+          
+        </Flex>
+      </Box>
+
+      {/* <h1> ✿ ❀ </h1> */}
+    </Flex>
+  );
+}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+export default Home;
+
 
 // ✪ FormDemo
 // const FormDemo = () => (
@@ -402,100 +504,3 @@ const CreditCardDemo = ({ cardNumber, cardHolder, expiryDate, cardType }) => {
 //   </Form.Root>
 // ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
-
-// ★ Home
-const Home = () => {
-  // WARN No type
-
-  const [activeUserId, setActiveUserId] = useState(null);
-
-  useEffect(() => {
-    console.log("Home Page"); // [LOG] Home Page log ✿ ❀
-  }, []);
-
-  return (
-    //────────DOM─────➤
-    <Flex gap="4" align="center" className="justify-evenly">
-      {/*//_PIN_ lEFT BOX */}
-      <Box maxWidth="520px">
-        <Card className=" pt-8 pb-16 pl-12">
-          <ScrollArea
-            type="auto"
-            scrollbars="vertical"
-            radius="full"
-            style={{ height: 650 }}
-            className="pr-10"
-          >
-            <Flex gap="3" align="center" className="justify-between">
-              <Heading color="orange">Patients </Heading>
-              <IconButton color="orange">
-                <AddButtonSVG />
-              </IconButton>
-            </Flex>
-
-            <Table.Root>
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
-                </Table.Row>
-              </Table.Header>
-
-              <Table.Body>
-                {patients.map((patient) => (
-                  <Table.Row key={patient.id}>
-                    <Table.RowHeaderCell>
-                      <PatientCard
-                        patient={patient}
-                        activeUserId={activeUserId}
-                        setActiveUserId={setActiveUserId}
-                      />
-                    </Table.RowHeaderCell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
-          </ScrollArea>
-        </Card>
-      </Box>
-
-      {/*//_PIN_ RIGHT BOX */}
-      <Box maxWidth="620px">
-        <Flex direction="column" gap="2">
-          {/*//_PIN_ TOP CARD */}
-          <Card className="py-8 px-8 flex justify-center">
-            {/* {activeUserId && (
-              <div className="p-6 rounded-lg">
-                <h2 className="text-2xl font-bold">
-                  {patients.find((patient) => patient.id === activeUserId).name}
-                </h2>
-                <p className="mt-2 text-gray-700">
-                  {patients.find((patient) => patient.id === activeUserId).age}
-                </p>
-              </div>
-            )} */}
-
-            {/* // ○ CreditCardDemo*/}
-            <CreditCardDemo
-              cardNumber="1"
-              cardHolder="John Doe"
-              expiryDate="12/24"
-              cardType="Visa" // You can switch between 'Visa' and 'MasterCard'
-            />
-          </Card>
-
-          {/*//_PIN_ BOTTOM CARD */}
-          <Card className=" py-8 px-8">
-            {/* <FormDemo /> */}
-            {/* // (○) PopoverAction*/}
-            <PopoverAction />
-          </Card>
-        </Flex>
-      </Box>
-
-      {/* <h1> ✿ ❀ </h1> */}
-    </Flex>
-  );
-}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-export default Home;

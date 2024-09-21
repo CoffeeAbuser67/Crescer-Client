@@ -91,7 +91,7 @@ const TabNavigation = () => {
         </TabNav.Link>
 
         <TabNav.Link asChild active={location.pathname === "/settings"}>
-          <Link to="/settings">Users</Link>
+          <Link to="/settings">Settings</Link>
         </TabNav.Link>
       </TabNav.Root>
     </div>

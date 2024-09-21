@@ -8,6 +8,13 @@ import Loader from "./components/Loader";
 import "@radix-ui/themes/styles.css";
 import { Theme } from "@radix-ui/themes";
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+
+
+
 function App() {
   const content = useRoutes(routes); // [ROUTE] 
   return (
@@ -20,6 +27,8 @@ function App() {
       <Theme appearance="dark" accentColor="orange" grayColor="olive">
         <Suspense fallback={<Loader />}>{content}</Suspense>
       </Theme>
+      <ToastContainer theme="dark" />
+
     </HelmetProvider>
   );
 }
