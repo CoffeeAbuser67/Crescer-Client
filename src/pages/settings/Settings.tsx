@@ -1,11 +1,19 @@
-// HERE
-
 import { useEffect } from "react";
-import { Card, Button, DataList, Flex, Code } from "@radix-ui/themes";
+import {
+  Card,
+  Button,
+  DataList,
+  Flex,
+  Code,
+  Separator,
+  Heading,
+} from "@radix-ui/themes";
 
 import axios from "axios";
 import { toast } from "react-toastify";
+import { faker } from '@faker-js/faker';
 
+// ✪ interface User
 interface User {
   first_name: string;
   last_name: string;
@@ -15,7 +23,109 @@ interface User {
   user_group: number;
 }
 
+
+// ✪ type Patient
+type Patient = {
+  patient_name: string;
+  parent_name: string;
+  phone_number?: string; // optional
+  email?: string; // optional
+  note?: string; // optional
+  country: string; // should use ISO 3166-1 alpha-2 code
+  city: string;
+  birth_date: string; // formatted as YYYY-MM-DD
+  expiration_date: string; // formatted as YYYY-MM-DD
+};
+
+
+
+
+
+// const patient1: Patient = {
+//   patient_name: "John Doe",
+//   parent_name: "Jane Doe",
+//   phone_number: "+55 77 99999-9999",
+//   email: "john.doe@example.com",
+//   note: "This is a patient note.",
+//   country: "BR",
+//   city: "Salvador",
+//   birth_date: "1990-01-01",
+//   expiration_date: "2025-12-31",
+// };
+
+// const patient2: Patient = {
+//   patient_name: "Alice Smith",
+//   parent_name: "Bob Smith",
+//   phone_number: "+55 77 88888-8888",
+//   email: "alice.smith@example.com",
+//   note: "Another patient note.",
+//   country: "BR",
+//   city: "Feira de Santana",
+//   birth_date: "1995-02-02",
+//   expiration_date: "2024-12-31",
+// };
+
+
+// const mockPatient1: Patient = {
+//   patient_name: "John Doe",
+//   parent_name: "Jane Doe",
+//   phone_number: "+15555555555",
+//   email: "john.doe@example.com",
+//   note: "Patient has a mild allergy to penicillin.",
+//   country: "US",
+//   city: "New York",
+//   birth_date: "1990-05-20",
+//   expiration_date: "2030-05-20",
+// };
+
+// const mockPatient2: Patient = {
+//   patient_name: "Maria Silva",
+//   parent_name: "Carlos Silva",
+//   // phone_number and email are optional and left out
+//   note: "",
+//   country: "BR",
+//   city: "Ilhéus",
+//   birth_date: "2005-11-15",
+//   expiration_date: "2025-11-15",
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // <✪> DeleteSVG
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const DeleteSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -79,6 +189,27 @@ const ReadSVG = () => (
   </svg>
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
+
+
+
+// [✪] generateMockPatient
+const generateMockPatient = (): Patient => {
+
+  return {
+    patient_name: faker.person.fullName(),
+    parent_name: faker.person.fullName(),
+    phone_number: "+55 77 99999-9999",
+    email: faker.internet.email(),
+    note: faker.lorem.sentence(),
+    country: faker.location.countryCode('alpha-2'), // Generates ISO country code
+    city: faker.location.city(),
+    birth_date: faker.date.birthdate({ min: 18, max: 60, mode: 'age' }).toISOString().split('T')[0],
+    expiration_date: faker.date.future().toISOString().split('T')[0], // Generates a future date
+  };
+};
+
+
+
 // {✪} handleAxiosError
 const handleAxiosError = (error: unknown) => {
   if (axios.isAxiosError(error)) {
@@ -127,9 +258,12 @@ const handleAxiosError = (error: unknown) => {
     console.error("An unexpected error occurred.");
     toast.error("An unexpected error occurred.");
   }
-}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+}; 
 
-// ★ Settings
+
+// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ★ Settings ────────────────────➤
 const Settings = () => {
   const _prefix = "http://127.0.0.1:8000/api/v1";
 
@@ -151,6 +285,36 @@ const Settings = () => {
     // No need to handle errors here, as the interceptor will take care of them
   };
 
+  // {●} addPatient
+  const addPatient = async (body: Patient) => {
+    const url = _prefix + "/patients/";
+    
+    console.log('addPatient', body) //[LOG] addPatient ✦ 
+    
+    const response = await axios.post(url, body);
+    console.log("Response Status:", response.status);
+
+    toast.success("Request successful");
+  };
+
+  // {●} getAllPatients
+  const getAllPatients = async () => {
+    const url = _prefix + "/patients/";
+    const response = await axios.get(url);
+    console.log("Response Data:", response.data);
+    toast.success("Request successful");
+    // No need to handle errors here, as the interceptor will take care of them
+  };
+
+  // {●} retrievePatient
+  const retrievePatient = async (pk: string) => {
+    const url = _prefix + "/patients/" + pk + "/";
+    const response = await axios.get(url);
+    console.log("Response Data:", response.data);
+    toast.success("Request successful");
+    // No need to handle errors here, as the interceptor will take care of them
+  };
+
   // ● user
   const user: User = {
     first_name: "Laoreno",
@@ -160,6 +324,11 @@ const Settings = () => {
     password2: "$%+4uCI(6q",
     user_group: 1,
   };
+
+
+  // [●] patients
+  const patients = Array.from({ length: 5 }, () => generateMockPatient());
+
 
   useEffect(() => {
     // Set up interceptors
@@ -177,13 +346,23 @@ const Settings = () => {
     };
   }, []);
 
-  //────DOM────➤
+  // _PIN_ ✦─DOM───➤
   return (
     <>
       <div className="flex justify-center items-center h-full w-full">
-        <Card className="py-8 px-8 flex justify-center">
+        <Card className="py-8 px-8 flex flex-col gap-2">
+          {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+          {/* // ✳  ✦─── User API ──➤  */}
+          <Heading size="5" className="text-red-900 mb-4">
+            {" "}
+            ✦ ─── User API ──➤
+          </Heading>
+
           <DataList.Root>
-            {/* // _PIN_  /auth/all/ */}
+            {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+            {/* // _PIN_ /auth/all/  */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
                 {/*// <○> ReadSVG */}
@@ -208,7 +387,9 @@ const Settings = () => {
               </DataList.Value>
             </DataList.Item>
 
-            {/* // _PIN_  /auth/registration/ */}
+            {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+            {/* // _PIN_  /auth/registration/  */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
                 {/*// <○> CreateSVG */}
@@ -231,10 +412,97 @@ const Settings = () => {
               </DataList.Value>
             </DataList.Item>
           </DataList.Root>
+          <Separator orientation="horizontal" size="4" className=" my-4" />
+
+          {/* // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+          {/* // ✳  ✦─── Patient API ──➤   */}
+          <Heading size="5" className="text-red-900 my-4">
+            {" "}
+            ✦ ─── Patient API ──➤
+          </Heading>
+
+          <DataList.Root>
+            {/* // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+            {/* // _PIN_  // /patients/ : post */}
+            <DataList.Item className="items-center">
+              <DataList.Label minWidth="88px" className="items-center">
+                {/*// <○> CreateSVG */}
+                <CreateSVG />
+                <Code variant="ghost" className="ml-4">
+                  add patient:
+                </Code>
+              </DataList.Label>
+
+              <DataList.Value>
+                <Flex align="center">
+                  <Code variant="ghost" className="mr-4">
+                    /patients/ : post
+                  </Code>
+
+                  {/*// {○} addPatient */}
+                  <Button variant="ghost" onClick={() => addPatient(patients[0])}>
+                    ↯
+                  </Button>
+                </Flex>
+              </DataList.Value>
+            </DataList.Item>
+
+            {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+            {/* // _PIN_  // /patients/ : get */}
+            <DataList.Item className="items-center">
+              <DataList.Label minWidth="88px" className="items-center">
+                {/*// <○> ReadSVG */}
+                <ReadSVG />
+                <Code variant="ghost" className="ml-4">
+                  get all patients:
+                </Code>
+              </DataList.Label>
+
+              <DataList.Value>
+                <Flex align="center">
+                  <Code variant="ghost" className="mr-4">
+                    /patients/ : get
+                  </Code>
+
+                  {/*// {○} getAllPatients */}
+                  <Button variant="ghost" onClick={getAllPatients}>
+                    ↯
+                  </Button>
+                </Flex>
+              </DataList.Value>
+            </DataList.Item>
+
+            {/* // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+            {/* // _PIN_  // /patients/<int:pk>/ : get */}
+            <DataList.Item className="items-center">
+              <DataList.Label minWidth="88px" className="items-center">
+                {/*// <○> ReadSVG */}
+                <ReadSVG />
+                <Code variant="ghost" className="ml-4">
+                  retrieve patient:
+                </Code>
+              </DataList.Label>
+
+              <DataList.Value>
+                <Flex align="center">
+                  <Code variant="ghost" className="mr-4">
+                    {"/patients/<int:pk>/ : get"}
+                  </Code>
+
+                  {/*// {○} retrievePatient */}
+                  <Button variant="ghost" onClick={() => retrievePatient("22")}>
+                    ↯
+                  </Button>
+                </Flex>
+              </DataList.Value>
+            </DataList.Item>
+          </DataList.Root>
         </Card>
       </div>
     </>
   );
-}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+};
 
 export default Settings;

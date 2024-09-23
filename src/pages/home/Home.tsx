@@ -341,7 +341,7 @@ const CreditCardDemo = ({ patientID  }) => {
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 
-// ★ Home
+// ★ Home ────────────────────➤
 const Home = () => {
   // WARN No type
 
@@ -352,7 +352,7 @@ const Home = () => {
   }, []);
 
   return (
-    //────────DOM─────➤
+    //──DOM────➤
     <Flex gap="4" align="center" className="justify-evenly">
       {/*//_PIN_ lEFT BOX */}
       <Box maxWidth="520px">
