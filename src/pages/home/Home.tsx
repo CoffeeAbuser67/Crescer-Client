@@ -480,49 +480,161 @@ const PatientForm = () => {
 
 // ✪ DialogDemo
 const DialogDemo = () => {
+  const brazilianPhoneNumberSchema = Yup.string()
+    // Brzillian phone Number validation
+    .required("Phone number is required")
+    .matches(
+      /^\s*(\d{2}|\d{0})[-. ]?(\d{5}|\d{4})[-. ]?(\d{4})[-. ]?\s*$/,
+      "Invalid phone number format"
+    );
+
+  const validationSchema = Yup.object({
+    patient_name: Yup.string().required("Patient name is required"),
+    parent_name: Yup.string().required("Parent name is required"),
+    expiration_date: Yup.date().required("Expiration date is required"),
+    email: Yup.string()
+      .email("Invalid email address")
+      .required("Email is required"),
+    phone_number: brazilianPhoneNumberSchema,
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      patient_name: "",
+      parent_name: "",
+      phone_number: "",
+      email: "",
+      expiration_date: "",
+    },
+    validationSchema,
+    onSubmit: async (values) => {
+      console.log("Patient saved:", values);
+    },
+  });
+
   return (
     <Dialog.Root>
       <Dialog.Trigger>
-        <Button>Edit profile</Button>
+        {/* //<○>  AddButtonSVG */}
+        <IconButton color="orange">
+          <AddButtonSVG />
+        </IconButton>
       </Dialog.Trigger>
 
       <Dialog.Content maxWidth="450px">
-        <Dialog.Title>Edit profile</Dialog.Title>
-        <Dialog.Description size="2" mb="4">
-          Make changes to your profile.
-        </Dialog.Description>
+        <form onSubmit={formik.handleSubmit}>
+          <Dialog.Title>Add Patient</Dialog.Title>
+          <Dialog.Description size="2" mb="4">
+            Create a new patient card.
+          </Dialog.Description>
 
-        <Flex direction="column" gap="3">
-          <label>
-            <Text as="div" size="2" mb="1" weight="bold">
-              Name
-            </Text>
-            <TextField.Root
-              defaultValue="Freja Johnsen"
-              placeholder="Enter your full name"
-            />
-          </label>
-          <label>
-            <Text as="div" size="2" mb="1" weight="bold">
-              Email
-            </Text>
-            <TextField.Root
-              defaultValue="freja@example.com"
-              placeholder="Enter your email"
-            />
-          </label>
-        </Flex>
+          <Flex direction="column" gap="3">
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                Patient Name
+              </Text>
+              <TextField.Root
+                type="text"
+                name="patient_name"
+                value={formik.values.patient_name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.patient_name && formik.errors.patient_name && (
+                <Text size="2" color="red">
+                  {formik.errors.patient_name}
+                </Text>
+              )}
+            </label>
 
-        <Flex gap="3" mt="4" justify="end">
-          <Dialog.Close>
-            <Button variant="soft" color="gray">
-              Cancel
-            </Button>
-          </Dialog.Close>
-          <Dialog.Close>
-            <Button>Save</Button>
-          </Dialog.Close>
-        </Flex>
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                Parent Name
+              </Text>
+              <TextField.Root
+                type="text"
+                name="parent_name"
+                value={formik.values.parent_name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.parent_name && formik.errors.parent_name && (
+                <Text size="2" color="red">
+                  {formik.errors.parent_name}
+                </Text>
+              )}
+            </label>
+
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                Expiration Date
+              </Text>
+              <TextField.Root
+                type="date"
+                name="expiration_date"
+                value={formik.values.expiration_date}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.expiration_date &&
+                formik.errors.expiration_date && (
+                  <Text size="2" color="red">
+                    {formik.errors.expiration_date}
+                  </Text>
+                )}
+            </label>
+
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                Email
+              </Text>
+              <TextField.Root
+                type="email"
+                name="email"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <Text size="2" color="red">
+                  {formik.errors.email}
+                </Text>
+              )}
+            </label>
+
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                Phone
+              </Text>
+              <TextField.Root
+                type="tel"
+                name="phone_number"
+                value={formik.values.phone_number}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.phone_number && formik.errors.phone_number && (
+                <Text size="2" color="red">
+                  {formik.errors.phone_number}
+                </Text>
+              )}
+            </label>
+
+            {/* -------------------------------------------- */}
+          </Flex>
+
+          <Flex gap="3" mt="4" justify="end">
+            <Dialog.Close>
+              <Button variant="soft" color="gray">
+                Cancel
+              </Button>
+            </Dialog.Close>
+
+            {/* WARN Deu ruim, precisa fechar essa merda depois de enviar  */}
+            <Button type="submit">Save</Button>
+            
+          </Flex>
+        </form>
       </Dialog.Content>
     </Dialog.Root>
   );
@@ -555,10 +667,8 @@ const Home = () => {
             >
               <Flex gap="3" align="center" className="justify-between">
                 <Heading color="orange">Patients </Heading>
-                {/* //<○>  AddButtonSVG */}
-                <IconButton color="orange">
-                  <AddButtonSVG />
-                </IconButton>
+                {/* // ○ DialogDemo*/}
+                <DialogDemo />
               </Flex>
 
               <Table.Root>
@@ -620,8 +730,6 @@ const Home = () => {
       </Flex>
       {/* // ○ PatientForm*/}
       <PatientForm />
-      {/* // ○ DialogDemo*/}
-      <DialogDemo />
     </>
   );
 };
