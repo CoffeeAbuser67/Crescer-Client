@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 
 import classNames from "classnames";
 
-import * as Form from "@radix-ui/react-form";
-
 import {
   Box,
   Card,
@@ -21,9 +19,13 @@ import {
   ScrollArea,
   TextField,
   DataList,
+  Dialog,
   Popover,
   Separator,
 } from "@radix-ui/themes";
+
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 // <●> AddButtonSVG
 const AddButtonSVG = () => (
@@ -158,7 +160,7 @@ const patients = [
   },
 ]; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// (✪) RemovePatient
+// (●) RemovePatient
 const RemovePatient = () => (
   <>
     <AlertDialog.Root>
@@ -239,6 +241,7 @@ const PopoverAction = () => (
           Remove
         </Button> */}
 
+        {/* // (○) RemovePatient*/}
         <RemovePatient />
       </Popover.Content>
     </Popover.Root>
@@ -289,7 +292,12 @@ const PatientCard = ({ patient, activePatientId, setActivePatientId }) => {
 
           <Flex align="center" gap="5">
             {/* (●) Badge */}
-            <Badge color="jade" variant="soft" radius="full" className="my-1 mx-3">
+            <Badge
+              color="jade"
+              variant="soft"
+              radius="full"
+              className="my-1 mx-3"
+            >
               Authorized
             </Badge>
           </Flex>
@@ -305,7 +313,7 @@ const PatientCard = ({ patient, activePatientId, setActivePatientId }) => {
 }; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // ✪ CreditCardDemo
-const CreditCardDemo = ({ patientID  }) => {
+const CreditCardDemo = ({ patientID }) => {
   // Format the card number for display
 
   return (
@@ -320,9 +328,7 @@ const CreditCardDemo = ({ patientID  }) => {
       <div className="mt-4">
         <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
         <p className="text-xl font-mono mt-1">
-        
           {patients.find((patient) => patient.id === patientID)?.id}
-
         </p>
       </div>
 
@@ -340,8 +346,189 @@ const CreditCardDemo = ({ patientID  }) => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
+// ✪ PatientForm
+const PatientForm = () => {
+  const brazilianPhoneNumberSchema = Yup.string()
+    // Brzillian phone Number validation
+    .required("Phone number is required")
+    .matches(
+      /^\s*(\d{2}|\d{0})[-. ]?(\d{5}|\d{4})[-. ]?(\d{4})[-. ]?\s*$/,
+      "Invalid phone number format"
+    );
 
-// ★ Home ────────────────────➤
+  const validationSchema = Yup.object({
+    patient_name: Yup.string().required("Patient name is required"),
+    parent_name: Yup.string().required("Parent name is required"),
+    expiration_date: Yup.date().required("Expiration date is required"),
+    email: Yup.string()
+      .email("Invalid email address")
+      .required("Email is required"),
+    phone_number: brazilianPhoneNumberSchema,
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      patient_name: "",
+      parent_name: "",
+      phone_number: "",
+      email: "",
+      expiration_date: "",
+    },
+    validationSchema,
+    onSubmit: async (values) => {
+      console.log("Patient saved:", values);
+    },
+  });
+
+  return (
+    <Card size="3">
+      <form onSubmit={formik.handleSubmit}>
+        <Flex gap="6" direction="column">
+          <Heading as="h3" size="4" trim="both">
+            Add Patient
+          </Heading>
+
+          <Flex asChild direction="column" gap="1">
+            <Text as="label" size="2" weight="medium">
+              <Text>Patient Name</Text>
+              <TextField.Root
+                type="text"
+                name="patient_name"
+                value={formik.values.patient_name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.patient_name && formik.errors.patient_name && (
+                <Text color="red">{formik.errors.patient_name}</Text>
+              )}
+            </Text>
+          </Flex>
+
+          <Flex asChild direction="column" gap="1">
+            <Text as="label" size="2" weight="medium">
+              <Text>Parent Name</Text>
+              <TextField.Root
+                type="text"
+                name="parent_name"
+                value={formik.values.parent_name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.parent_name && formik.errors.parent_name && (
+                <Text color="red">{formik.errors.parent_name}</Text>
+              )}
+            </Text>
+          </Flex>
+
+          <Flex asChild direction="column" gap="1">
+            <Text as="label" size="2" weight="medium">
+              <Text>Expiration Date</Text>
+              <TextField.Root
+                type="date"
+                name="expiration_date"
+                value={formik.values.expiration_date}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.expiration_date &&
+                formik.errors.expiration_date && (
+                  <Text color="red">{formik.errors.expiration_date}</Text>
+                )}
+            </Text>
+          </Flex>
+
+          <Flex asChild direction="column" gap="1">
+            <Text as="label" size="2" weight="medium">
+              <Text>Email</Text>
+              <TextField.Root
+                type="email"
+                name="email"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <Text color="red">{formik.errors.email}</Text>
+              )}
+            </Text>
+          </Flex>
+
+          <Flex asChild direction="column" gap="1">
+            <Text as="label" size="2" weight="medium">
+              <Text>Phone</Text>
+              <TextField.Root
+                type="tel"
+                name="phone_number"
+                value={formik.values.phone_number}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.phone_number && formik.errors.phone_number && (
+                <Text color="red">{formik.errors.phone_number}</Text>
+              )}
+            </Text>
+          </Flex>
+
+          <Flex justify="end">
+            <Button type="submit">Save Patient</Button>
+          </Flex>
+        </Flex>
+      </form>
+    </Card>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ✪ DialogDemo
+const DialogDemo = () => {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger>
+        <Button>Edit profile</Button>
+      </Dialog.Trigger>
+
+      <Dialog.Content maxWidth="450px">
+        <Dialog.Title>Edit profile</Dialog.Title>
+        <Dialog.Description size="2" mb="4">
+          Make changes to your profile.
+        </Dialog.Description>
+
+        <Flex direction="column" gap="3">
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              Name
+            </Text>
+            <TextField.Root
+              defaultValue="Freja Johnsen"
+              placeholder="Enter your full name"
+            />
+          </label>
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              Email
+            </Text>
+            <TextField.Root
+              defaultValue="freja@example.com"
+              placeholder="Enter your email"
+            />
+          </label>
+        </Flex>
+
+        <Flex gap="3" mt="4" justify="end">
+          <Dialog.Close>
+            <Button variant="soft" color="gray">
+              Cancel
+            </Button>
+          </Dialog.Close>
+          <Dialog.Close>
+            <Button>Save</Button>
+          </Dialog.Close>
+        </Flex>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ★ Home ─────────────────────────────────────────────────────➤
 const Home = () => {
   // WARN No type
 
@@ -353,55 +540,60 @@ const Home = () => {
 
   return (
     //──DOM────➤
-    <Flex gap="4" align="center" className="justify-evenly">
-      {/*//_PIN_ lEFT BOX */}
-      <Box maxWidth="520px">
-        <Card className=" pt-8 pb-16 pl-12">
-          <ScrollArea
-            type="auto"
-            scrollbars="vertical"
-            radius="full"
-            style={{ height: 650 }}
-            className="pr-10"
-          >
-            <Flex gap="3" align="center" className="justify-between">
-              <Heading color="orange">Patients </Heading>
-              <IconButton color="orange">
-                <AddButtonSVG />
-              </IconButton>
-            </Flex>
 
-            <Table.Root>
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
-                </Table.Row>
-              </Table.Header>
+    <>
+      <Flex gap="4" align="center" className="justify-evenly">
+        {/*//_PIN_ LEFT BOX */}
+        <Box maxWidth="520px">
+          <Card className=" pt-8 pb-16 pl-12">
+            <ScrollArea
+              type="auto"
+              scrollbars="vertical"
+              radius="full"
+              style={{ height: 650 }}
+              className="pr-10"
+            >
+              <Flex gap="3" align="center" className="justify-between">
+                <Heading color="orange">Patients </Heading>
+                {/* //<○>  AddButtonSVG */}
+                <IconButton color="orange">
+                  <AddButtonSVG />
+                </IconButton>
+              </Flex>
 
-              <Table.Body>
-                {patients.map((patient) => (
-                  <Table.Row key={patient.id}>
-                    <Table.RowHeaderCell>
-                      <PatientCard
-                        patient={patient}
-                        activePatientId={activePatientId}
-                        setActivePatientId={setActivePatientId}
-                      />
-                    </Table.RowHeaderCell>
+              <Table.Root>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.ColumnHeaderCell>
+                      Patient Card
+                    </Table.ColumnHeaderCell>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
-          </ScrollArea>
-        </Card>
-      </Box>
+                </Table.Header>
 
-      {/*//_PIN_ RIGHT BOX */}
-      <Box maxWidth="620px">
-        <Flex direction="column" gap="2">
-          {/*//_PIN_ TOP CARD */}
-          <Card className="py-8 px-8 flex justify-center">
-            {/* {activePatientId && (
+                <Table.Body>
+                  {patients.map((patient) => (
+                    <Table.Row key={patient.id}>
+                      <Table.RowHeaderCell>
+                        <PatientCard
+                          patient={patient}
+                          activePatientId={activePatientId}
+                          setActivePatientId={setActivePatientId}
+                        />
+                      </Table.RowHeaderCell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </ScrollArea>
+          </Card>
+        </Box>
+
+        {/*//_PIN_ RIGHT BOX */}
+        <Box maxWidth="620px">
+          <Flex direction="column" gap="2">
+            {/*//_PIN_ TOP CARD */}
+            <Card className="py-8 px-8 flex justify-center">
+              {/* {activePatientId && (
               <div className="p-6 rounded-lg">
                 <h2 className="text-2xl font-bold">
                   {patients.find((patient) => patient.id === activePatientId).name}
@@ -412,95 +604,147 @@ const Home = () => {
               </div>
             )} */}
 
-            {/* // ○ CreditCardDemo*/}
-            <CreditCardDemo
-              patientID = {activePatientId}
-            />
+              {/* // ○ CreditCardDemo*/}
+              <CreditCardDemo patientID={activePatientId} />
+            </Card>
 
-          </Card>
+            {/*//_PIN_ BOTTOM CARD */}
+            <Card className=" py-8 px-8">
+              {/* // (○) PopoverAction*/}
+              <PopoverAction />
+            </Card>
+          </Flex>
+        </Box>
 
-
-
-          {/*//_PIN_ BOTTOM CARD */}
-          <Card className=" py-8 px-8">
-            {/* <FormDemo /> */}
-            {/* // (○) PopoverAction*/}
-            <PopoverAction />
-          </Card>
-          
-        </Flex>
-      </Box>
-
-      {/* <h1> ✿ ❀ </h1> */}
-    </Flex>
+        {/* <h1> ✿ ❀ </h1> */}
+      </Flex>
+      {/* // ○ PatientForm*/}
+      <PatientForm />
+      {/* // ○ DialogDemo*/}
+      <DialogDemo />
+    </>
   );
-}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+};
 
 export default Home;
+// ───────────────────────────────────────────────────────────────────────────────➤
 
+// //  ✪ PatientForm
+// const PatientForm = () => {
+//   const [patientData, setPatientData] = useState<Patient>({
+//     patient_name: "",
+//     parent_name: "",
+//     phone_number: "",
+//     email: "",
+//     note: "",
+//     country: "US",
+//     city: "",
+//     birth_date: "",
+//     expiration_date: "",
+//   });
 
-// ✪ FormDemo
-// const FormDemo = () => (
-//   <Form.Root className="w-[500px]">
+//   const handleChange = (
+//     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+//   ) => {
+//     const { name, value } = e.target;
+//     setPatientData((prev) => ({ ...prev, [name]: value }));
+//   };
 
-//     {/* // ●  Form.Field*/}
-//     <Form.Field className="grid mb-[10px]" name="email">
-//       <div className="flex items-baseline justify-between">
-//         <Form.Label className="text-[15px] font-medium leading-[35px] text-white">
-//           Email
-//         </Form.Label>
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     console.log("Submit Form Log :", patientData) //[LOG] Submit Form Log
 
-//         <Form.Message
-//           className="text-[13px] text-white opacity-[0.8]"
-//           match="valueMissing"
-//         >
-//           Please enter your email
-//         </Form.Message>
+//   };
 
-//         <Form.Message
-//           className="text-[13px] text-white opacity-[0.8]"
-//           match="typeMismatch"
-//         >
-//           Please provide a valid email
-//         </Form.Message>
-//       </div>
+//   return (
+//     // ● DOM ●
 
-//       <Form.Control asChild>
-//         <input
-//           className="box-border w-full inline-flex h-[35px] items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none outline-none focus:shadow-[0_0_0_2px_black] "
-//           type="email"
-//           value="teste"
-//           disabled
-//         />
-//       </Form.Control>
-//     </Form.Field>
+//     <Card size="3">
+//       <form onSubmit={handleSubmit}>
+//         <Flex gap="6" direction="column">
+//           <Heading as="h3" size="4" trim="both">
+//             Add Patient
+//           </Heading>
 
-//     {/* // ●  Form.Field*/}
-//     <Form.Field className="grid mb-[10px]" name="question">
-//       <div className="flex items-baseline justify-between">
-//         <Form.Label className="text-[15px] font-medium leading-[35px] text-white">
-//           Question
-//         </Form.Label>
-//         <Form.Message
-//           className="text-[13px] text-white opacity-[0.8]"
-//           match="valueMissing"
-//         >
-//           Please enter a question
-//         </Form.Message>
-//       </div>
-//       <Form.Control asChild>
-//         <TextField.Root placeholder="Search the docs…" type="email">
-//           <TextField.Slot>✿❀</TextField.Slot>
-//         </TextField.Root>
-//       </Form.Control>
-//     </Form.Field>
+//           <Flex asChild direction="column" gap="1">
+//             <Text as="label" size="2" weight="medium">
+//               <Text>Patient Name</Text>
+//               <TextField.Root
+//                 type="text"
+//                 name="patient_name"
+//                 value={patientData.patient_name}
+//                 onChange={handleChange}
 
-//     {/* // ●  Form.Submit*/}
-//     <Form.Submit asChild>
-//       <button className="box-border w-full text-violet11 shadow-blackA4 hover:bg-mauve3 inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-medium leading-none shadow-[0_2px_10px] focus:shadow-[0_0_0_2px] focus:shadow-black focus:outline-none mt-[10px]">
-//         Save
-//       </button>
-//     </Form.Submit>
-//   </Form.Root>
-// ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+//               />
+//             </Text>
+//           </Flex>
 
+//           {/* // ──────────────────➤  */}
+
+//           <Flex asChild direction="column" gap="1">
+//             <Text as="label" size="2" weight="medium">
+//               <Text>Parent Name</Text>
+//               <TextField.Root
+//                 type="text"
+//                 name="parent_name"
+//                 value={patientData.parent_name}
+//                 onChange={handleChange}
+
+//               />
+//             </Text>
+//           </Flex>
+
+//           {/* // ──────────────────➤  */}
+
+//           <Flex asChild direction="column" gap="1">
+//             <Text as="label" size="2" weight="medium">
+//               <Text>Expiration Date</Text>
+//               <TextField.Root
+//                 type="date"
+//                 name="expiration_date"
+//                 value={patientData.expiration_date}
+//                 onChange={handleChange}
+
+//               />
+//             </Text>
+//           </Flex>
+
+//           {/* // ──────────────────➤ */}
+
+//           <Flex asChild direction="column" gap="1">
+//             <Text as="label" size="2" weight="medium">
+//               <Text>Email</Text>
+//               <TextField.Root
+//                 type="email"
+//                 name="email"
+//                 value={patientData.email}
+//                 onChange={handleChange}
+//               />
+//             </Text>
+//           </Flex>
+
+//           {/* // ──────────────────➤ */}
+
+//           <Flex asChild direction="column" gap="1">
+//             <Text as="label" size="2" weight="medium">
+//               <Text>Phone</Text>
+//               <TextField.Root
+//                 type="tel"
+//                 name="phone_number"
+//                 value={patientData.phone_number}
+//                 onChange={handleChange}
+//               />
+//             </Text>
+//           </Flex>
+
+//           {/* // ──────────────────➤ */}
+
+//         </Flex>
+
+//         <Flex justify="end">
+//           <Button type="submit">Save Patient</Button>
+//         </Flex>
+//       </form>
+//     </Card>
+//   );
+// };
