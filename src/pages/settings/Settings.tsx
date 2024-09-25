@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   Button,
@@ -14,29 +14,9 @@ import { faker } from "@faker-js/faker";
 
 import useAxiosHandleError  from "../../hooks/useAxiosHandleError" ;
 
+import { User } from "../../types/user";
+import { Patient, PatientBriefData } from "../../types/patient";
 
-// ✪ interface User
-interface User {
-  first_name: string;
-  last_name: string;
-  email: string;
-  password1: string;
-  password2: string;
-  user_group: number;
-}
-
-// ✪ type Patient
-type Patient = {
-  patient_name: string;
-  parent_name: string;
-  phone_number?: string; // optional
-  email?: string; // optional
-  note?: string; // optional
-  country: string; // should use ISO 3166-1 alpha-2 code
-  city: string;
-  birth_date: string; // formatted as YYYY-MM-DD
-  expiration_date: string; // formatted as YYYY-MM-DD
-};
 
 // const patient1: Patient = {
 //   patient_name: "John Doe",
@@ -167,62 +147,14 @@ const generateMockPatient = (): Patient => {
   };
 };
 
-// // {✪} handleAxiosError
-// const handleAxiosError = (error: unknown) => {
-//   if (axios.isAxiosError(error)) {
-//     if (error.response) {
-//       // Server responded with a status code other than 2xx
-//       console.error("Response Error:", {
-//         status: error.response.status,
-//         data: error.response.data,
-//         headers: error.response.headers,
-//       });
-
-//       // Handle specific error codes
-//       switch (error.response.status) {
-//         case 401:
-//           toast.error("Unauthorized. Please log in.");
-//           break;
-//         case 500:
-//           toast.error("Internal server error. Please try again later.");
-//           break;
-//         default:
-//           toast.error(`Server Error: ${error.response.status}`);
-//       }
-//     } else if (error.request) {
-//       // Request was made but no response was received (Network or timeout issue)
-//       if (error.code === "ECONNABORTED") {
-//         console.error("Network Timeout Error:", error.message);
-//         toast.error("Request timed out. Please try again.");
-//       } else if (!navigator.onLine) {
-//         console.error("Network Error: The device is offline.");
-//         toast.error("You are offline. Check your network connection.");
-//       } else {
-//         console.error("Network Error:", error.request);
-//         toast.error("Network error. Please try again.");
-//       }
-//     } else {
-//       // Something happened in setting up the request
-//       console.error("Axios Error:", error.message);
-//       toast.error("An error occurred. Please try again.");
-//     }
-
-//     console.error("Request Config:", error.config);
-//   } else if (error instanceof Error) {
-//     console.error("Non-Axios Error:", error.message);
-//     toast.error("An error occurred. Please try again.");
-//   } else {
-//     console.error("An unexpected error occurred.");
-//     toast.error("An unexpected error occurred.");
-//   }
-// };
 
 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ★ Settings ────────────────────➤
+// ★ Settings ────────────────────────────────────────────────────────➤
 const Settings = () => {
 
   const axios = useAxiosHandleError();
+
 
   // (●) getProfiles
   const getProfiles = async () => {
@@ -284,21 +216,6 @@ const Settings = () => {
   // [●] patients
   const patients = Array.from({ length: 5 }, () => generateMockPatient());
 
-  // useEffect(() => {
-  //   // Set up interceptors
-  //   const errorResponseInterceptor = axios.interceptors.response.use(
-  //     (response) => response,
-  //     (error) => {
-  //       // {○} handleAxiosError
-  //       handleAxiosError(error);
-  //       return Promise.reject(error);
-  //     }
-  //   );
-
-  //   return () => {
-  //     axios.interceptors.response.eject(errorResponseInterceptor);
-  //   };
-  // }, []);
 
   // _PIN_ ✦─DOM───➤
   return (
@@ -457,6 +374,8 @@ const Settings = () => {
       </div>
     </>
   );
-};
+}; // ★  ───────────────────────────────────────────────────────────────────────────────➤
 
 export default Settings;
+
+

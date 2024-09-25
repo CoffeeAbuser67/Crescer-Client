@@ -1,6 +1,5 @@
 // HERE import
 import { useEffect, useState } from "react";
-
 import classNames from "classnames";
 
 import {
@@ -26,6 +25,18 @@ import {
 
 import { useFormik } from "formik";
 import * as Yup from "yup";
+
+import { Patient, PatientBriefData } from "../../types/patient";
+import useAxiosHandleError from "../../hooks/useAxiosHandleError";
+import Loader from "../../components/Loader";
+
+// ● PatientCardProps
+
+interface PatientCardProps {
+  patient: PatientBriefData;
+  activePatientId: number | undefined;
+  setActivePatientId: (id: number) => void;
+}
 
 // <●> AddButtonSVG
 const AddButtonSVG = () => (
@@ -218,75 +229,59 @@ const RemovePatient = () => (
   </>
 ); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
-
-
 // (●) UpdatePatient
 const UpdatePatient = () => (
-  <>
-
-    
-
-
-
-  </>
+  // _PIN_ Missing
+  <>Let go</>
 ); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-
-
-
-
-
 
 // (✪) PopoverAction
 const PopoverAction = () => (
-  <Flex gap="4" align="center">
-    <Popover.Root>
-      <Popover.Trigger>
-        <IconButton variant="ghost">
-          <DotsSVG />
-        </IconButton>
-      </Popover.Trigger>
+  <Popover.Root>
+    <Popover.Trigger>
+      <IconButton variant="ghost">
+        <DotsSVG />
+      </IconButton>
+    </Popover.Trigger>
 
-      <Popover.Content
-        size="1"
-        maxWidth="300px"
-        className="flex flex-col items-center"
-      >
-        <Button color="orange" variant="ghost">
-          Edit profile
-        </Button>
-        <Separator orientation="horizontal" size="4" className=" my-4" />
-        {/* <Button color="crimson" variant="ghost">
-          Remove
-        </Button> */}
+    <Popover.Content
+      size="1"
+      maxWidth="300px"
+      className="flex flex-col items-center"
+    >
+      <Button color="orange" variant="ghost">
+        Edit profile
+      </Button>
+      <Separator orientation="horizontal" size="4" className=" my-4" />
 
-        {/* // (○) RemovePatient*/}
-        <RemovePatient />
-      </Popover.Content>
-    </Popover.Root>
-  </Flex>
+      {/* // (○) RemovePatient*/}
+      <RemovePatient />
+    </Popover.Content>
+  </Popover.Root>
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // (✪) PatientCard
-const PatientCard = ({ patient, activePatientId, setActivePatientId }) => {
-  // WARN No type
-
-  const handleCardClick = (id) => {
+const PatientCard: React.FC<PatientCardProps> = ({
+  patient,
+  activePatientId,
+  setActivePatientId,
+}) => {
+  // ○ PatientCardProps
+  const handleCardClick = (id: number) => {
     setActivePatientId(id);
-    console.log("patient: ", id); // [LOG]  card click log
+    console.log("patient: ", activePatientId); // [LOG]  card click log
   };
 
   return (
     <Box maxWidth="440px">
       <Card
         variant="surface"
-        onClick={() => handleCardClick(patient.id)}
-        key={patient.id}
+        onClick={() => handleCardClick(patient.pkid)}
+        key={patient.pkid}
         className={classNames(
           "cursor-pointer border hover:shadow-lg",
           `${
-            activePatientId === patient.id
+            activePatientId === patient.pkid
               ? "border-orange-500"
               : "border-transparent"
           }`
@@ -301,8 +296,8 @@ const PatientCard = ({ patient, activePatientId, setActivePatientId }) => {
             />
 
             <Box>
-              <Text as="div" size="2" weight="bold">
-                {`${patient.name}`}
+              <Text as="div" size="2" weight="bold" className="mb-2">
+                {`${patient.patient_name}`}
               </Text>
               <Text as="div" size="2" color="gray">
                 {`${patient.age}`}
@@ -310,21 +305,14 @@ const PatientCard = ({ patient, activePatientId, setActivePatientId }) => {
             </Box>
           </Flex>
 
-          <Flex align="center" gap="5">
-            {/* (●) Badge */}
-            <Badge
-              color="jade"
-              variant="soft"
-              radius="full"
-              className="my-1 mx-3"
-            >
+          <Flex direction="column" className="items-end">
+            {/* // (○) PopoverAction */}
+            <PopoverAction />
+
+            {/* // (●) Badge */}
+            <Badge color="jade" variant="soft" radius="full" className="mt-4 ">
               Authorized
             </Badge>
-          </Flex>
-
-          <Flex align="center" gap="5">
-            {/* //(○) PopoverAction */}
-            <PopoverAction />
           </Flex>
         </Flex>
       </Card>
@@ -366,7 +354,6 @@ const CreditCardDemo = ({ patientID }) => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
 // ✪ AddPatient
 const AddPatient = () => {
   const [open, setOpen] = useState(false);
@@ -382,8 +369,7 @@ const AddPatient = () => {
     patient_name: Yup.string().required("Patient name is required"),
     parent_name: Yup.string().required("Parent name is required"),
     expiration_date: Yup.date().required("Expiration date is required"),
-    email: Yup.string()
-      .email("Invalid email address"),
+    email: Yup.string().email("Invalid email address"),
     phone_number: brazilianPhoneNumberSchema,
   });
 
@@ -398,13 +384,10 @@ const AddPatient = () => {
 
     validationSchema,
 
-
     onSubmit: async (values) => {
-
-      // _PIN_ API CALL HERE  ✉  
-      console.log("Patient saved:", values); // [LOG] Patient saved ➤ 
+      // _PIN_ API CALL HERE  ✉
+      console.log("Patient saved:", values); // [LOG] Patient saved ➤
       setOpen(false);
-
     },
   });
 
@@ -520,7 +503,6 @@ const AddPatient = () => {
           </Flex>
 
           <Flex gap="3" mt="4" justify="end">
-            
             <Dialog.Close>
               <Button variant="soft" color="gray">
                 Cancel
@@ -528,7 +510,6 @@ const AddPatient = () => {
             </Dialog.Close>
 
             <Button type="submit">Save</Button>
-            
           </Flex>
         </form>
       </Dialog.Content>
@@ -540,8 +521,8 @@ const AddPatient = () => {
 const Home = () => {
   // WARN No type
 
-  // NOTE 
-  // Need to define the patients official fields asap  
+  // NOTE
+  // Need to define the patients official fields asap
   // type Patient = {
   //   patient_name: string;
   //   parent_name: string;
@@ -554,31 +535,38 @@ const Home = () => {
   //   expiration_date?: string; // formatted as YYYY-MM-DD
   // };
 
-
-
-  // make axios hooks universal 
   // Patient DataList component
-  // User validation  
+  // User validation
   // User Page  ADMINx
-  
 
   // DDD phonenumber field
   // IMAGE FIELD?
 
-  // make types universal 
+  // make types universal
 
-  // messageria ? 
+  // messageria ?
   // update Patient component
-  // Remove Patient Component 
+  // Remove Patient Component
 
+  const [activePatientId, setActivePatientId] = useState<number>();
+  const [PatientList, setPatientList] = useState<PatientBriefData[]>([]);
 
-
-
-  const [activePatientId, setActivePatientId] = useState(null);
+  const axios = useAxiosHandleError();
 
   useEffect(() => {
-    console.log("Home Page"); // [LOG] Home Page log ✿ ❀
-  }, []);
+    // ✳ getAllPatients ✦
+    const getAllPatients = async () => {
+      const url = "/patients/";
+      const response = await axios.get(url);
+      setPatientList(response.data);
+      console.log("getAllPatients"); // [LOG] getAllPatients ✿ ❀
+    };
+
+    getAllPatients();
+    // WARN eslint wants axios on dependency array..
+  }, [axios]);
+
+
 
   return (
     //──DOM────➤
@@ -592,7 +580,7 @@ const Home = () => {
               type="auto"
               scrollbars="vertical"
               radius="full"
-              style={{ height: 650 }}
+              style={{ height: 750 }}
               className="pr-10"
             >
               <Flex gap="3" align="center" className="justify-between">
@@ -611,17 +599,22 @@ const Home = () => {
                 </Table.Header>
 
                 <Table.Body>
-                  {patients.map((patient) => (
-                    <Table.Row key={patient.id}>
-                      <Table.RowHeaderCell>
-                        <PatientCard
-                          patient={patient}
-                          activePatientId={activePatientId}
-                          setActivePatientId={setActivePatientId}
-                        />
-                      </Table.RowHeaderCell>
-                    </Table.Row>
-                  ))}
+                  {!PatientList.length ? (
+                    <Loader />
+                  ) : (
+                    PatientList.map((patient) => (
+                      <Table.Row key={patient.pkid}>
+                        <Table.RowHeaderCell>
+                          {/* // (○) PatientCard*/}
+                          <PatientCard
+                            patient={patient}
+                            activePatientId={activePatientId}
+                            setActivePatientId={setActivePatientId}
+                          />
+                        </Table.RowHeaderCell>
+                      </Table.Row>
+                    ))
+                  )}
                 </Table.Body>
               </Table.Root>
             </ScrollArea>
@@ -633,17 +626,6 @@ const Home = () => {
           <Flex direction="column" gap="2">
             {/*//_PIN_ TOP CARD */}
             <Card className="py-8 px-8 flex justify-center">
-              {/* {activePatientId && (
-              <div className="p-6 rounded-lg">
-                <h2 className="text-2xl font-bold">
-                  {patients.find((patient) => patient.id === activePatientId).name}
-                </h2>
-                <p className="mt-2 text-gray-700">
-                  {patients.find((patient) => patient.id === activePatientId).age}
-                </p>
-              </div>
-            )} */}
-
               {/* // ○ CreditCardDemo*/}
               <CreditCardDemo patientID={activePatientId} />
             </Card>
