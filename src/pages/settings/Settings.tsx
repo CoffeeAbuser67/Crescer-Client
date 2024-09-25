@@ -9,9 +9,11 @@ import {
   Heading,
 } from "@radix-ui/themes";
 
-import axios from "axios";
 import { toast } from "react-toastify";
-import { faker } from '@faker-js/faker';
+import { faker } from "@faker-js/faker";
+
+import useAxiosHandleError  from "../../hooks/useAxiosHandleError" ;
+
 
 // ✪ interface User
 interface User {
@@ -22,7 +24,6 @@ interface User {
   password2: string;
   user_group: number;
 }
-
 
 // ✪ type Patient
 type Patient = {
@@ -36,10 +37,6 @@ type Patient = {
   birth_date: string; // formatted as YYYY-MM-DD
   expiration_date: string; // formatted as YYYY-MM-DD
 };
-
-
-
-
 
 // const patient1: Patient = {
 //   patient_name: "John Doe",
@@ -65,7 +62,6 @@ type Patient = {
 //   expiration_date: "2024-12-31",
 // };
 
-
 // const mockPatient1: Patient = {
 //   patient_name: "John Doe",
 //   parent_name: "Jane Doe",
@@ -89,43 +85,7 @@ type Patient = {
 //   expiration_date: "2025-11-15",
 // };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // <✪> DeleteSVG
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const DeleteSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -189,87 +149,84 @@ const ReadSVG = () => (
   </svg>
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
-
-
 // [✪] generateMockPatient
 const generateMockPatient = (): Patient => {
-
   return {
     patient_name: faker.person.fullName(),
     parent_name: faker.person.fullName(),
     phone_number: "+55 77 99999-9999",
     email: faker.internet.email(),
     note: faker.lorem.sentence(),
-    country: faker.location.countryCode('alpha-2'), // Generates ISO country code
+    country: faker.location.countryCode("alpha-2"), // Generates ISO country code
     city: faker.location.city(),
-    birth_date: faker.date.birthdate({ min: 18, max: 60, mode: 'age' }).toISOString().split('T')[0],
-    expiration_date: faker.date.future().toISOString().split('T')[0], // Generates a future date
+    birth_date: faker.date
+      .birthdate({ min: 18, max: 60, mode: "age" })
+      .toISOString()
+      .split("T")[0],
+    expiration_date: faker.date.future().toISOString().split("T")[0], // Generates a future date
   };
 };
 
+// // {✪} handleAxiosError
+// const handleAxiosError = (error: unknown) => {
+//   if (axios.isAxiosError(error)) {
+//     if (error.response) {
+//       // Server responded with a status code other than 2xx
+//       console.error("Response Error:", {
+//         status: error.response.status,
+//         data: error.response.data,
+//         headers: error.response.headers,
+//       });
 
+//       // Handle specific error codes
+//       switch (error.response.status) {
+//         case 401:
+//           toast.error("Unauthorized. Please log in.");
+//           break;
+//         case 500:
+//           toast.error("Internal server error. Please try again later.");
+//           break;
+//         default:
+//           toast.error(`Server Error: ${error.response.status}`);
+//       }
+//     } else if (error.request) {
+//       // Request was made but no response was received (Network or timeout issue)
+//       if (error.code === "ECONNABORTED") {
+//         console.error("Network Timeout Error:", error.message);
+//         toast.error("Request timed out. Please try again.");
+//       } else if (!navigator.onLine) {
+//         console.error("Network Error: The device is offline.");
+//         toast.error("You are offline. Check your network connection.");
+//       } else {
+//         console.error("Network Error:", error.request);
+//         toast.error("Network error. Please try again.");
+//       }
+//     } else {
+//       // Something happened in setting up the request
+//       console.error("Axios Error:", error.message);
+//       toast.error("An error occurred. Please try again.");
+//     }
 
-// {✪} handleAxiosError
-const handleAxiosError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
-    if (error.response) {
-      // Server responded with a status code other than 2xx
-      console.error("Response Error:", {
-        status: error.response.status,
-        data: error.response.data,
-        headers: error.response.headers,
-      });
-
-      // Handle specific error codes
-      switch (error.response.status) {
-        case 401:
-          toast.error("Unauthorized. Please log in.");
-          break;
-        case 500:
-          toast.error("Internal server error. Please try again later.");
-          break;
-        default:
-          toast.error(`Server Error: ${error.response.status}`);
-      }
-    } else if (error.request) {
-      // Request was made but no response was received (Network or timeout issue)
-      if (error.code === "ECONNABORTED") {
-        console.error("Network Timeout Error:", error.message);
-        toast.error("Request timed out. Please try again.");
-      } else if (!navigator.onLine) {
-        console.error("Network Error: The device is offline.");
-        toast.error("You are offline. Check your network connection.");
-      } else {
-        console.error("Network Error:", error.request);
-        toast.error("Network error. Please try again.");
-      }
-    } else {
-      // Something happened in setting up the request
-      console.error("Axios Error:", error.message);
-      toast.error("An error occurred. Please try again.");
-    }
-
-    console.error("Request Config:", error.config);
-  } else if (error instanceof Error) {
-    console.error("Non-Axios Error:", error.message);
-    toast.error("An error occurred. Please try again.");
-  } else {
-    console.error("An unexpected error occurred.");
-    toast.error("An unexpected error occurred.");
-  }
-}; 
-
+//     console.error("Request Config:", error.config);
+//   } else if (error instanceof Error) {
+//     console.error("Non-Axios Error:", error.message);
+//     toast.error("An error occurred. Please try again.");
+//   } else {
+//     console.error("An unexpected error occurred.");
+//     toast.error("An unexpected error occurred.");
+//   }
+// };
 
 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // ★ Settings ────────────────────➤
 const Settings = () => {
-  const _prefix = "http://127.0.0.1:8000/api/v1";
+
+  const axios = useAxiosHandleError();
 
   // (●) getProfiles
   const getProfiles = async () => {
-    const url = _prefix + "/auth/all/";
+    const url = "/auth/all/";
     const response = await axios.get(url);
     console.log("Response Data:", response.data);
     toast.success("Request successful");
@@ -278,28 +235,27 @@ const Settings = () => {
 
   // (●) addUser
   const addUser = async (body: User) => {
-    const url = _prefix + "/auth/registration/";
+    const url = "/auth/registration/";
     const response = await axios.post(url, body);
     console.log("Response Status:", response.status);
     toast.success("Request successful");
     // No need to handle errors here, as the interceptor will take care of them
   };
 
+   //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
   // {●} addPatient
   const addPatient = async (body: Patient) => {
-    const url = _prefix + "/patients/";
-    
-    console.log('addPatient', body) //[LOG] addPatient ✦ 
-    
+    const url = "/patients/";
+    console.log("addPatient", body); //[LOG] addPatient ✦
     const response = await axios.post(url, body);
     console.log("Response Status:", response.status);
-
     toast.success("Request successful");
-  };
+  };  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 
   // {●} getAllPatients
   const getAllPatients = async () => {
-    const url = _prefix + "/patients/";
+    const url = "/patients/";
     const response = await axios.get(url);
     console.log("Response Data:", response.data);
     toast.success("Request successful");
@@ -308,7 +264,7 @@ const Settings = () => {
 
   // {●} retrievePatient
   const retrievePatient = async (pk: string) => {
-    const url = _prefix + "/patients/" + pk + "/";
+    const url = "/patients/" + pk + "/";
     const response = await axios.get(url);
     console.log("Response Data:", response.data);
     toast.success("Request successful");
@@ -325,42 +281,39 @@ const Settings = () => {
     user_group: 1,
   };
 
-
   // [●] patients
   const patients = Array.from({ length: 5 }, () => generateMockPatient());
 
+  // useEffect(() => {
+  //   // Set up interceptors
+  //   const errorResponseInterceptor = axios.interceptors.response.use(
+  //     (response) => response,
+  //     (error) => {
+  //       // {○} handleAxiosError
+  //       handleAxiosError(error);
+  //       return Promise.reject(error);
+  //     }
+  //   );
 
-  useEffect(() => {
-    // Set up interceptors
-    const errorResponseInterceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        // {○} handleAxiosError
-        handleAxiosError(error);
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      axios.interceptors.response.eject(errorResponseInterceptor);
-    };
-  }, []);
+  //   return () => {
+  //     axios.interceptors.response.eject(errorResponseInterceptor);
+  //   };
+  // }, []);
 
   // _PIN_ ✦─DOM───➤
   return (
     <>
       <div className="flex justify-center items-center h-full w-full">
         <Card className="py-8 px-8 flex flex-col gap-2">
-          {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+          {/*  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
 
           {/* // ✳  ✦─── User API ──➤  */}
           <Heading size="5" className="text-red-900 mb-4">
-            {" "}
             ✦ ─── User API ──➤
           </Heading>
 
           <DataList.Root>
-            {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+            {/*  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
 
             {/* // _PIN_ /auth/all/  */}
             <DataList.Item className="items-center">
@@ -387,8 +340,7 @@ const Settings = () => {
               </DataList.Value>
             </DataList.Item>
 
-            {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
-
+            {/*  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
             {/* // _PIN_  /auth/registration/  */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
@@ -418,7 +370,6 @@ const Settings = () => {
 
           {/* // ✳  ✦─── Patient API ──➤   */}
           <Heading size="5" className="text-red-900 my-4">
-            {" "}
             ✦ ─── Patient API ──➤
           </Heading>
 
@@ -441,7 +392,10 @@ const Settings = () => {
                   </Code>
 
                   {/*// {○} addPatient */}
-                  <Button variant="ghost" onClick={() => addPatient(patients[0])}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => addPatient(patients[0])}
+                  >
                     ↯
                   </Button>
                 </Flex>

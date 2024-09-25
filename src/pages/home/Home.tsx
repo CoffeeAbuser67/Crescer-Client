@@ -540,6 +540,40 @@ const AddPatient = () => {
 const Home = () => {
   // WARN No type
 
+  // NOTE 
+  // Need to define the patients official fields asap  
+  // type Patient = {
+  //   patient_name: string;
+  //   parent_name: string;
+  //   phone_number?: string; // optional
+  //   email?: string; // optional
+  //   note?: string; // optional
+  //   country?: string; // should use ISO 3166-1 alpha-2 code
+  //   city?: string;
+  //   birth_date?: string; // formatted as YYYY-MM-DD
+  //   expiration_date?: string; // formatted as YYYY-MM-DD
+  // };
+
+
+
+  // make axios hooks universal 
+  // Patient DataList component
+  // User validation  
+  // User Page  ADMINx
+  
+
+  // DDD phonenumber field
+  // IMAGE FIELD?
+
+  // make types universal 
+
+  // messageria ? 
+  // update Patient component
+  // Remove Patient Component 
+
+
+
+
   const [activePatientId, setActivePatientId] = useState(null);
 
   useEffect(() => {
