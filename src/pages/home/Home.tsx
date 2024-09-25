@@ -480,6 +480,8 @@ const PatientForm = () => {
 
 // ✪ DialogDemo
 const DialogDemo = () => {
+  const [open, setOpen] = useState(false);
+
   const brazilianPhoneNumberSchema = Yup.string()
     // Brzillian phone Number validation
     .required("Phone number is required")
@@ -506,14 +508,22 @@ const DialogDemo = () => {
       email: "",
       expiration_date: "",
     },
+
     validationSchema,
+
+
     onSubmit: async (values) => {
-      console.log("Patient saved:", values);
+
+      console.log("Patient saved:", values); // [LOG] Patient saved ➤ 
+
+      
+      setOpen(false);
+
     },
   });
 
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger>
         {/* //<○>  AddButtonSVG */}
         <IconButton color="orange">
