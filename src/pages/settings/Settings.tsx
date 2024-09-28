@@ -18,53 +18,6 @@ import { User } from "../../types/user";
 import { Patient, PatientBriefData } from "../../types/patient";
 
 
-// const patient1: Patient = {
-//   patient_name: "John Doe",
-//   parent_name: "Jane Doe",
-//   phone_number: "+55 77 99999-9999",
-//   email: "john.doe@example.com",
-//   note: "This is a patient note.",
-//   country: "BR",
-//   city: "Salvador",
-//   birth_date: "1990-01-01",
-//   expiration_date: "2025-12-31",
-// };
-
-// const patient2: Patient = {
-//   patient_name: "Alice Smith",
-//   parent_name: "Bob Smith",
-//   phone_number: "+55 77 88888-8888",
-//   email: "alice.smith@example.com",
-//   note: "Another patient note.",
-//   country: "BR",
-//   city: "Feira de Santana",
-//   birth_date: "1995-02-02",
-//   expiration_date: "2024-12-31",
-// };
-
-// const mockPatient1: Patient = {
-//   patient_name: "John Doe",
-//   parent_name: "Jane Doe",
-//   phone_number: "+15555555555",
-//   email: "john.doe@example.com",
-//   note: "Patient has a mild allergy to penicillin.",
-//   country: "US",
-//   city: "New York",
-//   birth_date: "1990-05-20",
-//   expiration_date: "2030-05-20",
-// };
-
-// const mockPatient2: Patient = {
-//   patient_name: "Maria Silva",
-//   parent_name: "Carlos Silva",
-//   // phone_number and email are optional and left out
-//   note: "",
-//   country: "BR",
-//   city: "Ilhéus",
-//   birth_date: "2005-11-15",
-//   expiration_date: "2025-11-15",
-// };
-
 // <✪> DeleteSVG
 const DeleteSVG = () => (
   <svg
@@ -127,7 +80,28 @@ const ReadSVG = () => (
       d="M23 10h-.1a5 5 0 0 0-8.33-2.64C13.78 7.13 12.91 7 12 7s-1.78.12-2.57.36A5 5 0 0 0 1.1 10H1c-.55 0-1 .45-1 1s.45 1 1 1h.1a5 5 0 0 0 9.9-1c0-.66-.13-1.29-.36-1.87.43-.08.88-.13 1.36-.13s.94.04 1.36.13A5.002 5.002 0 1 0 22.9 12h.1c.55 0 1-.45 1-1s-.45-1-1-1zM6 14c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3zm12 0c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
     />
   </svg>
-); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+  
+); 
+
+
+// <✪> LockSVG
+const LockSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlSpace="preserve"
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+    fill="#e5e7eb"
+  >
+    <path
+      id="locksvg"
+      d="M12 4c1.7 0 3 1.3 3 3 0 .6.4 1 1 1s1-.4 1-1c0-2.8-2.2-5-5-5S7 4.2 7 7v3.1c-1.7.4-3 2-3 3.9v4c0 2.2 1.8 4 4 4h8c2.2 0 4-1.8 4-4v-4c0-2.2-1.8-4-4-4H9V7c0-1.7 1.3-3 3-3zm6 10v4c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2z"
+    />
+  </svg>
+) // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
 
 // [✪] generateMockPatient
 const generateMockPatient = (): Patient => {
@@ -155,11 +129,30 @@ const Settings = () => {
 
   const axios = useAxiosHandleError();
 
+  // ● user
+  const user: User = {
+    first_name: "Laoreno",
+    last_name: "Dunlap",
+    email: "dsfsdfsdfas@example.org",
+    password1: "$%+4uCI(6q",
+    password2: "$%+4uCI(6q",
+    user_group: 1,
+  };
 
-  // (●) getProfiles
-  const getProfiles = async () => {
-    const url = "/auth/all/";
-    const response = await axios.get(url);
+
+  // [●] patients
+  const patients = Array.from({ length: 5 }, () => generateMockPatient());
+
+
+   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+  // (●) login
+  const login = async () => {
+
+    // _PIN_  user sample for login
+    const sample = {email: 'matthew26@example.com', password: 'm_3YPcmG*#'}
+    const url = "/auth/login/";
+    const response = await axios.post(url, sample);
     console.log("Response Data:", response.data);
     toast.success("Request successful");
     // No need to handle errors here, as the interceptor will take care of them
@@ -203,61 +196,48 @@ const Settings = () => {
     // No need to handle errors here, as the interceptor will take care of them
   };
 
-  // ● user
-  const user: User = {
-    first_name: "Laoreno",
-    last_name: "Dunlap",
-    email: "dsfsdfsdfas@example.org",
-    password1: "$%+4uCI(6q",
-    password2: "$%+4uCI(6q",
-    user_group: 1,
-  };
-
-  // [●] patients
-  const patients = Array.from({ length: 5 }, () => generateMockPatient());
 
 
-  // _PIN_ ✦─DOM───➤
+  // _PIN_ ───────────────────✦─DOM───➤
   return (
     <>
       <div className="flex justify-center items-center h-full w-full">
         <Card className="py-8 px-8 flex flex-col gap-2">
-          {/*  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
 
-          {/* // ✳  ✦─── User API ──➤  */}
+          {/* // ✳  ✦─── User API ────────────────────────────────────────────────────────────➤  */}
           <Heading size="5" className="text-red-900 mb-4">
             ✦ ─── User API ──➤
           </Heading>
 
           <DataList.Root>
-            {/*  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
 
             {/* // _PIN_ /auth/all/  */}
+
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
-                {/*// <○> ReadSVG */}
-                <ReadSVG />
+                {/*// <○> LockSVG */}
+                <LockSVG />
 
                 <Code variant="ghost" className="ml-4">
-                  get all profiles:
+                  peform login:
                 </Code>
               </DataList.Label>
 
               <DataList.Value>
                 <Flex align="center">
                   <Code variant="ghost" className="mr-4">
-                    /auth/all/
+                    /auth/login/
                   </Code>
 
-                  {/*// (○) getProfiles */}
-                  <Button variant="ghost" onClick={getProfiles}>
+                  {/*// (○) login */}
+                  <Button variant="ghost" onClick={login}>
                     ↯
                   </Button>
                 </Flex>
               </DataList.Value>
             </DataList.Item>
 
-            {/*  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+            {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
             {/* // _PIN_  /auth/registration/  */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
@@ -283,15 +263,15 @@ const Settings = () => {
           </DataList.Root>
           <Separator orientation="horizontal" size="4" className=" my-4" />
 
-          {/* // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
 
-          {/* // ✳  ✦─── Patient API ──➤   */}
+          {/* // ✳  ✦─── Patient API ──────────────────────────────────────────────────────➤   */}
           <Heading size="5" className="text-red-900 my-4">
             ✦ ─── Patient API ──➤
           </Heading>
 
           <DataList.Root>
-            {/* // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+
             {/* // _PIN_  // /patients/ : post */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
@@ -319,7 +299,7 @@ const Settings = () => {
               </DataList.Value>
             </DataList.Item>
 
-            {/*  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+            {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
             {/* // _PIN_  // /patients/ : get */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
@@ -344,7 +324,7 @@ const Settings = () => {
               </DataList.Value>
             </DataList.Item>
 
-            {/* // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+            {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
 
             {/* // _PIN_  // /patients/<int:pk>/ : get */}
             <DataList.Item className="items-center">

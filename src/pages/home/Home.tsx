@@ -392,135 +392,138 @@ const AddPatient = () => {
   });
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger>
-        {/* //<○>  AddButtonSVG */}
-        <IconButton color="orange">
-          <AddButtonSVG />
-        </IconButton>
-      </Dialog.Trigger>
+    <>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Trigger>
+          {/* //<○>  AddButtonSVG */}
+          <IconButton color="orange">
+            <AddButtonSVG />
+          </IconButton>
+        </Dialog.Trigger>
 
-      <Dialog.Content maxWidth="450px">
-        <form onSubmit={formik.handleSubmit}>
-          <Dialog.Title>Add Patient</Dialog.Title>
-          <Dialog.Description size="2" mb="4">
-            Create a new patient card.
-          </Dialog.Description>
+        <Dialog.Content maxWidth="450px">
+          <form onSubmit={formik.handleSubmit}>
+            <Dialog.Title>Add Patient</Dialog.Title>
+            <Dialog.Description size="2" mb="4">
+              Create a new patient card.
+            </Dialog.Description>
 
-          <Flex direction="column" gap="3">
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Patient Name
-              </Text>
-              <TextField.Root
-                type="text"
-                name="patient_name"
-                value={formik.values.patient_name}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.patient_name && formik.errors.patient_name && (
-                <Text size="2" color="red">
-                  {formik.errors.patient_name}
+            <Flex direction="column" gap="3">
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Patient Name
                 </Text>
-              )}
-            </label>
-
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Parent Name
-              </Text>
-              <TextField.Root
-                type="text"
-                name="parent_name"
-                value={formik.values.parent_name}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.parent_name && formik.errors.parent_name && (
-                <Text size="2" color="red">
-                  {formik.errors.parent_name}
-                </Text>
-              )}
-            </label>
-
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Expiration Date
-              </Text>
-              <TextField.Root
-                type="date"
-                name="expiration_date"
-                value={formik.values.expiration_date}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.expiration_date &&
-                formik.errors.expiration_date && (
+                <TextField.Root
+                  type="text"
+                  name="patient_name"
+                  value={formik.values.patient_name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.patient_name && formik.errors.patient_name && (
                   <Text size="2" color="red">
-                    {formik.errors.expiration_date}
+                    {formik.errors.patient_name}
                   </Text>
                 )}
-            </label>
+              </label>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Email
-              </Text>
-              <TextField.Root
-                type="email"
-                name="email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.email && formik.errors.email && (
-                <Text size="2" color="red">
-                  {formik.errors.email}
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Parent Name
                 </Text>
-              )}
-            </label>
+                <TextField.Root
+                  type="text"
+                  name="parent_name"
+                  value={formik.values.parent_name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.parent_name && formik.errors.parent_name && (
+                  <Text size="2" color="red">
+                    {formik.errors.parent_name}
+                  </Text>
+                )}
+              </label>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Phone
-              </Text>
-              <TextField.Root
-                type="tel"
-                name="phone_number"
-                value={formik.values.phone_number}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.phone_number && formik.errors.phone_number && (
-                <Text size="2" color="red">
-                  {formik.errors.phone_number}
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Expiration Date
                 </Text>
-              )}
-            </label>
+                <TextField.Root
+                  type="date"
+                  name="expiration_date"
+                  value={formik.values.expiration_date}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.expiration_date &&
+                  formik.errors.expiration_date && (
+                    <Text size="2" color="red">
+                      {formik.errors.expiration_date}
+                    </Text>
+                  )}
+              </label>
 
-            {/* -------------------------------------------- */}
-          </Flex>
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Email
+                </Text>
+                <TextField.Root
+                  type="email"
+                  name="email"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <Text size="2" color="red">
+                    {formik.errors.email}
+                  </Text>
+                )}
+              </label>
 
-          <Flex gap="3" mt="4" justify="end">
-            <Dialog.Close>
-              <Button variant="soft" color="gray">
-                Cancel
-              </Button>
-            </Dialog.Close>
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Phone
+                </Text>
+                <TextField.Root
+                  type="tel"
+                  name="phone_number"
+                  value={formik.values.phone_number}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.phone_number && formik.errors.phone_number && (
+                  <Text size="2" color="red">
+                    {formik.errors.phone_number}
+                  </Text>
+                )}
+              </label>
 
-            <Button type="submit">Save</Button>
-          </Flex>
-        </form>
-      </Dialog.Content>
-    </Dialog.Root>
+              {/* -------------------------------------------- */}
+            </Flex>
+
+            <Flex gap="3" mt="4" justify="end">
+              <Dialog.Close>
+                <Button variant="soft" color="gray">
+                  Cancel
+                </Button>
+              </Dialog.Close>
+
+              <Button type="submit">Save</Button>
+            </Flex>
+          </form>
+        </Dialog.Content>
+      </Dialog.Root>
+    </>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ★ Home ─────────────────────────────────────────────────────➤
-const Home = () => {
-  // WARN No type
 
+
+
+// ★ Home ─────────────────────────────────────────────────────➤
+  // WARN No type
   // NOTE
   // Need to define the patients official fields asap
   // type Patient = {
@@ -536,6 +539,7 @@ const Home = () => {
   // };
 
   // Patient DataList component
+
   // User validation
   // User Page  ADMINx
 
@@ -548,13 +552,16 @@ const Home = () => {
   // update Patient component
   // Remove Patient Component
 
+const Home = () => {
+
   const [activePatientId, setActivePatientId] = useState<number>();
   const [PatientList, setPatientList] = useState<PatientBriefData[]>([]);
 
   const axios = useAxiosHandleError();
 
   useEffect(() => {
-    // ✳ getAllPatients ✦
+
+    // ✳ ✦── getAllPatients ✉───➤
     const getAllPatients = async () => {
       const url = "/patients/";
       const response = await axios.get(url);
@@ -566,11 +573,8 @@ const Home = () => {
     // WARN eslint wants axios on dependency array..
   }, [axios]);
 
-
-
   return (
-    //──DOM────➤
-
+    //──✦─DOM────➤
     <>
       <Flex gap="4" align="center" className="justify-evenly">
         {/*//_PIN_ LEFT BOX */}
@@ -600,7 +604,11 @@ const Home = () => {
 
                 <Table.Body>
                   {!PatientList.length ? (
-                    <Loader />
+                    <Table.Row>
+                      <Table.RowHeaderCell>
+                        <Loader />
+                      </Table.RowHeaderCell>
+                    </Table.Row>
                   ) : (
                     PatientList.map((patient) => (
                       <Table.Row key={patient.pkid}>
@@ -616,6 +624,7 @@ const Home = () => {
                     ))
                   )}
                 </Table.Body>
+                
               </Table.Root>
             </ScrollArea>
           </Card>

@@ -63,8 +63,8 @@ const useAxiosHandleError = () => {
   useEffect(() => {
     // Set up interceptors
     const errorResponseInterceptor = axiosPrivate.interceptors.response.use(
-      (response) => response,
-      (error) => {
+      response => response,
+      async (error) => {
         // {○} handleAxiosError
         handleAxiosError(error);
         return Promise.reject(error);
@@ -77,7 +77,6 @@ const useAxiosHandleError = () => {
   }, []);
 
   return axiosPrivate
-
 }
 
 

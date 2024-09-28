@@ -1,7 +1,7 @@
 import { Spinner } from "@radix-ui/themes";
 
 const Loader = () => (
-  <div className="flex justify-center items-center h-full w-full mt-10">
+  <div className="flex justify-center items-center h-full w-full">
     <Spinner />
   </div>
 );
