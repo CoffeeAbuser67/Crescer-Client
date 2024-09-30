@@ -58,7 +58,7 @@ const Login = () => {
     },
     validationSchema,
     onSubmit: async (values) => {
-      console.log(" ✉ :", values); // [LOG] ✉
+      console.log(" ✉ :", values); // [LOG] ✉ 
     },
   });
 

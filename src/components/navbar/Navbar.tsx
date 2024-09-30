@@ -86,8 +86,8 @@ const TabNavigation = () => {
   return (
     <div>
       <TabNav.Root>
-        <TabNav.Link asChild active={location.pathname === "/home"}>
-          <Link to="/home">Home</Link>
+        <TabNav.Link asChild active={location.pathname === "/"}>
+          <Link to="/">Home</Link>
         </TabNav.Link>
 
         <TabNav.Link asChild active={location.pathname === "/settings"}>

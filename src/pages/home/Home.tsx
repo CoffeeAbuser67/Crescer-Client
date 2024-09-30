@@ -27,7 +27,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { Patient, PatientBriefData } from "../../types/patient";
-import useAxiosHandleError from "../../hooks/useAxiosHandleError";
+import useAxiosErrorManager from "../../hooks/useAxiosErrorManager";
 import Loader from "../../components/Loader";
 
 // ● PatientCardProps
@@ -557,7 +557,7 @@ const Home = () => {
   const [activePatientId, setActivePatientId] = useState<number>();
   const [PatientList, setPatientList] = useState<PatientBriefData[]>([]);
 
-  const axios = useAxiosHandleError();
+  const axios = useAxiosErrorManager();
 
   useEffect(() => {
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Box,
   Card,
   Button,
   DataList,
@@ -12,10 +13,13 @@ import {
 import { toast } from "react-toastify";
 import { faker } from "@faker-js/faker";
 
-import useAxiosHandleError  from "../../hooks/useAxiosHandleError" ;
+import useAxiosErrorManager from "../../hooks/useAxiosErrorManager";
 
 import { User } from "../../types/user";
 import { Patient, PatientBriefData } from "../../types/patient";
+
+
+
 
 
 // <✪> DeleteSVG
@@ -80,9 +84,7 @@ const ReadSVG = () => (
       d="M23 10h-.1a5 5 0 0 0-8.33-2.64C13.78 7.13 12.91 7 12 7s-1.78.12-2.57.36A5 5 0 0 0 1.1 10H1c-.55 0-1 .45-1 1s.45 1 1 1h.1a5 5 0 0 0 9.9-1c0-.66-.13-1.29-.36-1.87.43-.08.88-.13 1.36-.13s.94.04 1.36.13A5.002 5.002 0 1 0 22.9 12h.1c.55 0 1-.45 1-1s-.45-1-1-1zM6 14c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3zm12 0c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
     />
   </svg>
-  
-); 
-
+);
 
 // <✪> LockSVG
 const LockSVG = () => (
@@ -99,9 +101,7 @@ const LockSVG = () => (
       d="M12 4c1.7 0 3 1.3 3 3 0 .6.4 1 1 1s1-.4 1-1c0-2.8-2.2-5-5-5S7 4.2 7 7v3.1c-1.7.4-3 2-3 3.9v4c0 2.2 1.8 4 4 4h8c2.2 0 4-1.8 4-4v-4c0-2.2-1.8-4-4-4H9V7c0-1.7 1.3-3 3-3zm6 10v4c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2z"
     />
   </svg>
-) // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-
+); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // [✪] generateMockPatient
 const generateMockPatient = (): Patient => {
@@ -119,15 +119,64 @@ const generateMockPatient = (): Patient => {
       .split("T")[0],
     expiration_date: faker.date.future().toISOString().split("T")[0], // Generates a future date
   };
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+
+// ✪ Timer Store 
+import { create } from "zustand";
+
+type State = {
+  useTimer: boolean;
+  timer: number;
 };
 
+type Action = {
+  updateTimer: () => void; // No argument required here
+  updateUseTimer: (el : State['useTimer']) => void; 
+};
 
-// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+const useTimerStore = create<State & Action>((set) => ({
+  useTimer: false,
+  timer: 20,
+  updateUseTimer: (el) => set(() => ({ useTimer:  el })), 
+  updateTimer: () => set((state) => ({ timer: state.timer - 1 })), 
+}));
+
+
+// ✪ Timer
+interface TimerProps {
+  initialSeconds: number;
+}
+
+const Timer: React.FC<TimerProps> = () => {
+
+  const timer = useTimerStore((state) => state.timer)
+  const updateTimer = useTimerStore((state) => state.updateTimer)
+
+  useEffect(() => {
+    if (timer > 0) {
+      const intervalId = setInterval(() => {
+        updateTimer();
+      }, 1000);
+
+      return () => clearInterval(intervalId); // Cleanup on component unmount
+    }
+  }, [timer, updateTimer]);
+
+  return (
+    <div>
+      <h1> Time remaining: {timer} seconds</h1>
+    </div>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 
 // ★ Settings ────────────────────────────────────────────────────────➤
 const Settings = () => {
-
-  const axios = useAxiosHandleError();
+  const axios = useAxiosErrorManager();
+  const useTimer = useTimerStore((state) => state.useTimer)
+  const updateUseTimer = useTimerStore((state) => state.updateUseTimer)
 
   // ● user
   const user: User = {
@@ -139,35 +188,45 @@ const Settings = () => {
     user_group: 1,
   };
 
-
   // [●] patients
   const patients = Array.from({ length: 5 }, () => generateMockPatient());
 
+  // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+  // No need to handle errors here, as the interceptor will take care of them
 
   // (●) login
   const login = async () => {
-
     // _PIN_  user sample for login
-    const sample = {email: 'matthew26@example.com', password: 'm_3YPcmG*#'}
+
+    updateUseTimer(true)
+    const sample = { email: "matthew26@example.com", password: "m_3YPcmG*#" };
     const url = "/auth/login/";
     const response = await axios.post(url, sample);
-    console.log("Response Data:", response.data);
+    console.log("Response Data:", response.data); // [LOG] 
     toast.success("Request successful");
-    // No need to handle errors here, as the interceptor will take care of them
-  };
+  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
+  
   // (●) addUser
   const addUser = async (body: User) => {
     const url = "/auth/registration/";
     const response = await axios.post(url, body);
-    console.log("Response Status:", response.status);
+    console.log("Response Status:", response.status); // [LOG] 
     toast.success("Request successful");
-    // No need to handle errors here, as the interceptor will take care of them
-  };
+  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-   //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+  // (●) refreshToken
+  const refreshToken = async () => {
+    console.log("rfereshToken Invoked "); // [LOG] refreshToken
+    const url = "/auth/token/refresh/";
+    const response = await axios.post(url, {});
+    console.log("Response data:", response.data); // [LOG] 
+    console.log("Response status:", response.status); 
+
+    toast.success("Request successful");
+  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
   // {●} addPatient
   const addPatient = async (body: Patient) => {
     const url = "/patients/";
@@ -175,43 +234,51 @@ const Settings = () => {
     const response = await axios.post(url, body);
     console.log("Response Status:", response.status);
     toast.success("Request successful");
-  };  //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
+  }; //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
   // {●} getAllPatients
   const getAllPatients = async () => {
     const url = "/patients/";
     const response = await axios.get(url);
-    console.log("Response Data:", response.data);
+    console.log("Response Data:", response.data); // [LOG] 
     toast.success("Request successful");
-    // No need to handle errors here, as the interceptor will take care of them
-  };
+  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
   // {●} retrievePatient
   const retrievePatient = async (pk: string) => {
     const url = "/patients/" + pk + "/";
     const response = await axios.get(url);
-    console.log("Response Data:", response.data);
+    console.log("Response Data:", response.data); // [LOG] 
     toast.success("Request successful");
-    // No need to handle errors here, as the interceptor will take care of them
-  };
-
-
+  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
   // _PIN_ ───────────────────✦─DOM───➤
   return (
     <>
-      <div className="flex justify-center items-center h-full w-full">
-        <Card className="py-8 px-8 flex flex-col gap-2">
+      <Box
+        id="Canvas"
+        className="flex flex-col gap-10 justify-center items-center h-full w-full"
+      >
 
+        {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+        <Card className="py-8 px-8 flex flex-col gap-2 items-center">
+          <Heading size="5" className="text-green-900 mb-4">
+            ── Token Timer ⏰ ──
+          </Heading>
+          {useTimer && <Timer initialSeconds={20} />}
+        </Card>
+
+        {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+
+        <Card className="py-8 px-8 flex flex-col gap-2">
           {/* // ✳  ✦─── User API ────────────────────────────────────────────────────────────➤  */}
           <Heading size="5" className="text-red-900 mb-4">
             ✦ ─── User API ──➤
           </Heading>
 
           <DataList.Root>
-
-            {/* // _PIN_ /auth/all/  */}
+            {/* // _PIN_ /auth/login/  */}
 
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
@@ -231,6 +298,30 @@ const Settings = () => {
 
                   {/*// (○) login */}
                   <Button variant="ghost" onClick={login}>
+                    ↯
+                  </Button>
+                </Flex>
+              </DataList.Value>
+            </DataList.Item>
+
+            {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
+            {/* // _PIN_  /auth/token/refresh/  */}
+            <DataList.Item className="items-center">
+              <DataList.Label minWidth="88px" className="items-center">
+                {/*// <○> LockSVG */}
+                <LockSVG />
+                <Code variant="ghost" className="ml-4">
+                  refresh token:
+                </Code>
+              </DataList.Label>
+
+              <DataList.Value>
+                <Flex align="center">
+                  <Code variant="ghost" className="mr-4">
+                    /auth/token/refresh/
+                  </Code>
+                  {/*// (○) refreshToken */}
+                  <Button variant="ghost" onClick={refreshToken}>
                     ↯
                   </Button>
                 </Flex>
@@ -263,15 +354,12 @@ const Settings = () => {
           </DataList.Root>
           <Separator orientation="horizontal" size="4" className=" my-4" />
 
-
           {/* // ✳  ✦─── Patient API ──────────────────────────────────────────────────────➤   */}
           <Heading size="5" className="text-red-900 my-4">
             ✦ ─── Patient API ──➤
           </Heading>
 
           <DataList.Root>
-
-
             {/* // _PIN_  // /patients/ : post */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
@@ -351,11 +439,9 @@ const Settings = () => {
             </DataList.Item>
           </DataList.Root>
         </Card>
-      </div>
+      </Box>
     </>
   );
 }; // ★  ───────────────────────────────────────────────────────────────────────────────➤
 
 export default Settings;
-
-

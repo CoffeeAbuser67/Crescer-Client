@@ -1,9 +1,31 @@
 import { useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-
 import { axiosPrivate } from "../api/axios";
+
+
+
+ 
+
+const useRefreshToken = () => {
+
+
+
+
+
+
+
+
+
+  
+
+}
+
+
+
+
+
+
 
 
 // {●} handleAxiosError
@@ -20,7 +42,9 @@ const handleAxiosError = (error: unknown) => {
       // Handle specific error codes
       switch (error.response.status) {
         case 401:
-          toast.error("Unauthorized. Please log in.");
+          
+        
+        toast.error("Unauthorized. Please log in.");
           break;
         case 500:
           toast.error("Internal server error. Please try again later.");
@@ -57,14 +81,15 @@ const handleAxiosError = (error: unknown) => {
 }; 
 
 
-// {✪} useAxiosHandleError
-const useAxiosHandleError = () => {
+// {✪} useAxiosErrorManager
+const useAxiosErrorManager = () => {
 
   useEffect(() => {
     // Set up interceptors
     const errorResponseInterceptor = axiosPrivate.interceptors.response.use(
       response => response,
       async (error) => {
+
         // {○} handleAxiosError
         handleAxiosError(error);
         return Promise.reject(error);
@@ -80,5 +105,5 @@ const useAxiosHandleError = () => {
 }
 
 
-export default useAxiosHandleError
+export default useAxiosErrorManager
 
