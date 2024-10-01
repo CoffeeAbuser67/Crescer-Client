@@ -1,5 +1,3 @@
-
-
 // // HERE Approach 1
 
 // import { useLocation, Navigate, Outlet } from "react-router-dom";
@@ -20,8 +18,6 @@
 
 // export default RequireAuth;
 
-
-
 // import { Navigate } from "react-router-dom";
 // import { useAuthServiceContext } from "../context/AuthContext";
 
@@ -37,11 +33,8 @@
 
 // export default ProtectedRoute;
 
-
-
 import { useLocation, Navigate } from "react-router-dom";
-import { useUserStore } from "../store/userStore";
-
+import { useUserStore } from "../../store/userStore";
 
 interface PropType {
   children: React.ReactNode;
@@ -49,16 +42,16 @@ interface PropType {
 // NOTE add roles protection
 
 
-// <✪> RoutesProtector
-const RoutesProtector = ({ children }: PropType) => {
+// <✪> RouteProtector
+const RouteProtector: React.FC<PropType> = ( {children} ) => {
   const location = useLocation();
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
 
-  return (
-    isLoggedIn 
-    ? <>{children}</> 
-    : <Navigate to="/auth/login" state={{ from: location }} replace />
-  )
-}
+  return isLoggedIn ? (
+    <>{children}</>
+  ) : (
+    <Navigate to="/auth/login" state={{ from: location }} replace />
+  );
+};
 
-export default RoutesProtector
+export default RouteProtector;

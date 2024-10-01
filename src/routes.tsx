@@ -3,21 +3,21 @@
 import { lazy } from "@loadable/component";
 import Default from "./layouts/Default";
 import AuthLayout from "./layouts/Auth";
-import RoutesProtector from "./components/RoutesProtector";
-
-
+import RouteProtector from "./components/guard/RouteProtector";
 
 const Home = lazy(() => import("./pages/home/Home"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
 const Login = lazy(() => import("./pages/auth/Login"));
 
-
 // . . . . . . . . . ➤
 const routes = [
-
   {
     path: "/",
-    element: (<RoutesProtector> <Default /> </RoutesProtector>),
+    element: (
+      <RouteProtector>
+        <Default />
+      </RouteProtector>
+    ),
     children: [
       {
         path: "",
@@ -27,7 +27,6 @@ const routes = [
         path: "settings",
         element: <Settings />,
       },
-
     ],
   },
 
@@ -41,14 +40,6 @@ const routes = [
       },
     ],
   },
-
-
-
-
 ];
 
 export default routes;
-
-
-
-

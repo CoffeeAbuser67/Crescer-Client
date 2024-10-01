@@ -27,14 +27,12 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { Patient, PatientBriefData } from "../../types/patient";
-
 import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
 import Loader from "../../components/Loader";
-
 import handleAxiosError from "../../utils/handleAxiosError";
+import ComponentProtector from "../../components/guard/ComponentProtector";
 
 // ● PatientCardProps
-
 interface PatientCardProps {
   patient: PatientBriefData;
   activePatientId: number | undefined;
@@ -242,7 +240,7 @@ const UpdatePatient = () => (
 const PopoverAction = () => (
   <Popover.Root>
     <Popover.Trigger>
-      <IconButton variant="ghost">
+      <IconButton className="py-0 mb-3" variant="ghost">
         <DotsSVG />
       </IconButton>
     </Popover.Trigger>
@@ -308,12 +306,14 @@ const PatientCard: React.FC<PatientCardProps> = ({
             </Box>
           </Flex>
 
-          <Flex direction="column" className="items-end">
+          <Flex direction="column" className="items-end ">
             {/* // (○) PopoverAction */}
-            <PopoverAction />
+            <ComponentProtector>
+              <PopoverAction />
+            </ComponentProtector>
 
             {/* // (●) Badge */}
-            <Badge color="jade" variant="soft" radius="full" className="mt-4 ">
+            <Badge color="jade" variant="soft" radius="full">
               Authorized
             </Badge>
           </Flex>
@@ -546,12 +546,9 @@ const AddPatient = () => {
 // DDD phonenumber field
 // IMAGE FIELD?
 
-// make types universal
-
 // messageria ?
 // update Patient component
 // Remove Patient Component
-
 const Home = () => {
   const [activePatientId, setActivePatientId] = useState<number>();
   const [PatientList, setPatientList] = useState<PatientBriefData[]>([]);
@@ -565,13 +562,13 @@ const Home = () => {
         const url = "/patients/";
         const response = await axios.get(url);
         setPatientList(response?.data);
-        console.log("getAllPatients"); // [LOG] getAllPatients ✿ ❀ 
+        console.log("getAllPatients"); // [LOG] getAllPatients ✿ ❀
       } catch (err: unknown) {
         if (err) {
-          handleAxiosError(err)
+          handleAxiosError(err);
 
-          // console.log("✉  err.status:", err?.status); // [LOG] ✉ 
-          // console.log("✉  err.message:", err?.message); // [LOG] ✉ 
+          // console.log("✉  err.status:", err?.status); // [LOG] ✉
+          // console.log("✉  err.message:", err?.message); // [LOG] ✉
         }
       }
     };
@@ -596,8 +593,11 @@ const Home = () => {
             >
               <Flex gap="3" align="center" className="justify-between">
                 <Heading color="orange">Patients </Heading>
+
                 {/* // ○ AddPatient*/}
-                <AddPatient />
+                <ComponentProtector>
+                  <AddPatient />
+                </ComponentProtector>
               </Flex>
 
               <Table.Root>

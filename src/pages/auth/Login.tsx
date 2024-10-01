@@ -16,24 +16,31 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
-
 import { useNavigate } from "react-router-dom";
 
 import useAuthService from "../../utils/authService";
 import handleAxiosError from "../../utils/handleAxiosError";
 
+import { useUserStore } from "../../store/userStore";
+import { toast } from "react-toastify";
+
 const defaultValues = {
   email: "matthew26@example.com", // default email value
-  password: "m_3YPcmG*#",         // default password value
+  password: "m_3YPcmG*#", // default password value
 };
-
 
 // ★ Login ─────────────────────────────────────────────────────➤
 const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useAuthService();
+  const user = useUserStore((state) => state.user);
 
-  const navigate = useNavigate()
-  const {login} = useAuthService();
-
+  useEffect(() => {
+    if (user) {
+      const message = `Welcome, ${user?.first_name}! `;
+      toast.success(message);
+    }
+  }, [user]);
 
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email address"),
@@ -45,17 +52,15 @@ const Login = () => {
     initialValues: defaultValues,
     validationSchema,
     onSubmit: async (values) => {
-    
-      console.log(" ✉ "); // [LOG] ✉ 
+
       try {
-        await login(values)
-        navigate('/')   
+        await login(values);
+        navigate("/");
       } catch (err: unknown) {
-        handleAxiosError(err)
+        handleAxiosError(err);
       }
     },
   });
-
 
   return (
     //──✦─DOM────➤
@@ -74,7 +79,6 @@ const Login = () => {
             <Text as="div" size="2" mb="1" weight="bold">
               Email
             </Text>
-
 
             <TextField.Root
               type="email"
@@ -101,8 +105,6 @@ const Login = () => {
                 Password
               </Text>
             </Flex>
-
-
 
             <TextField.Root
               type="password"

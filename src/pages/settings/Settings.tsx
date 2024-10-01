@@ -264,8 +264,8 @@ const Settings = () => {
             ── Token Timer ⏰ ──
           </Heading>
 
-          <Text className = 'text-green-900'>Access Token time  : 10 secs</Text>
-          <Text className = 'text-green-900'>Refresh Token time : 20 secs</Text>
+          <Text className = 'text-green-900'>Access Token time  : 10 min</Text>
+          <Text className = 'text-green-900'>Refresh Token time : 20 min</Text>
           <Text className = 'text-green-900'>REFRESHTOKEN ROTATION: false</Text>
 
           {useTimer && <Timer initialSeconds={20} />}
