@@ -46,7 +46,7 @@ const Login = () => {
     validationSchema,
     onSubmit: async (values) => {
     
-      console.log("values  ✉ :", values); // [LOG] ✉ 
+      console.log(" ✉ "); // [LOG] ✉ 
       try {
         await login(values)
         navigate('/')   

@@ -1,6 +1,8 @@
 // import
 import { Card, Heading, TabNav, IconButton, Tooltip } from "@radix-ui/themes";
 import { Link, useLocation } from "react-router-dom";
+import useAuthService from "../../utils/authService";
+
 
 // WARN Repeated SVG
 // <✪> CrescerFlowerSVG
@@ -100,6 +102,14 @@ const TabNavigation = () => {
 
 // ★ Navbar
 const Navbar = () => {
+  
+  const {logout} = useAuthService()
+
+  const handleClick = () => {
+    console.log('inside the handle click') //[LOG]
+    logout()
+  }
+  
   //────────DOM─────➤
   return (
     <Card id="navbar" variant="classic" className="mb-14 rounded-t-none">
@@ -117,7 +127,7 @@ const Navbar = () => {
 
         {/* // <○> LogoutSVG */}
         <Tooltip content="Logout">
-          <IconButton variant="ghost">
+          <IconButton onClick = {handleClick}  variant="ghost">
             <LogoutSVG />
           </IconButton>
         </Tooltip>

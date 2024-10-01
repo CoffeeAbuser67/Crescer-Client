@@ -1,5 +1,6 @@
 import { axiosDefault } from "./axios";
 import { useUserStore } from "../store/userStore";
+import { useNavigate } from "react-router-dom";
 
 interface Credentials {
   email: string;
@@ -9,9 +10,9 @@ interface Credentials {
 // {✪} useAuthService
 const useAuthService = () => {
 
-
+  const navigate = useNavigate()
   const setActiveUser = useUserStore((state) => state.setActiveUser);
-  
+  const removeActiveUser = useUserStore((state) => state.removeActiveUser);
 
   // {●} login
   const login = async (values: Credentials) => {
@@ -39,8 +40,8 @@ const useAuthService = () => {
           withCredentials: true,
         }
       );
-
       return response?.status === 200;
+
     } catch (error) {
       return Promise.reject(error);
     }
@@ -49,15 +50,16 @@ const useAuthService = () => {
   // {●} logout
   const logout = async () => {
     try {
-      const response = await axiosDefault.post(
+
+      removeActiveUser();
+      await axiosDefault.post(
         "/auth/logout/",
         {},
         {
           withCredentials: true,
         }
       );
-
-      return response.status;
+      navigate("/auth/login");
     } catch (error) {
       return Promise.reject(error);
     }
@@ -68,25 +70,3 @@ const useAuthService = () => {
 
 export default useAuthService;
 
-//   // {●} login
-//   login: async (credentials: Credentials) => {
-//     try {
-//       const response = await axios.post('/auth/login/', credentials);
-//       console.log('Response Data:', response.data);
-//       set({ isAuthenticated: true });
-//       toast.success('Login successful');
-
-//     } catch (error) {
-//       console.error('Login failed', error);
-//       toast.error('Login failed');
-//     }
-//   },
-
-// // {●} login
-//   export const useLogin = async (credentials : Credentials) => {
-
-//     const url = "/auth/login/";
-//     const response = await axiosDefault.post(url, credentials);
-//     console.log("Response Data:", response.data); // [LOG]
-//     toast.success("Request successful");
-//   }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .

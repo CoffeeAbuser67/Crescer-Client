@@ -6,12 +6,10 @@ import { useTimerStore } from "../store/timerStore";
 import useAuthService from "../utils/authService";
 
 
-
 // {✪} useAxiosErrorInterceptor
 const useAxiosErrorInterceptor = () => {
 
-
-  const {tryRefreshToken} = useAuthService()
+  const {tryRefreshToken, logout} = useAuthService()
 
   // WARN Consume TimerStore remove in production
   const resetTimer = useTimerStore((state) => state.resetTimer)
@@ -23,14 +21,13 @@ const useAxiosErrorInterceptor = () => {
       async (error) => {
         
         try{
-
           const originalRequest = error?.config;
           const status = error?.response?.status;
   
           if (status === 401) {
             // {○} tryRefreshToken
             const isTokenRefreshed = await tryRefreshToken()
-          
+        
             if (isTokenRefreshed){
               resetTimer() // WARN Remove this in production
               console.log('Authentication Refreshed') //[LOG] Authentication Refreshed  
@@ -39,6 +36,7 @@ const useAxiosErrorInterceptor = () => {
           }
 
         }catch(error){
+          logout();
           return Promise.reject(error);
         }
       }

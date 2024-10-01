@@ -3,6 +3,9 @@
 import { lazy } from "@loadable/component";
 import Default from "./layouts/Default";
 import AuthLayout from "./layouts/Auth";
+import RoutesProtector from "./components/RoutesProtector";
+
+
 
 const Home = lazy(() => import("./pages/home/Home"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
@@ -14,7 +17,7 @@ const routes = [
 
   {
     path: "/",
-    element: <Default />,
+    element: (<RoutesProtector> <Default /> </RoutesProtector>),
     children: [
       {
         path: "",
