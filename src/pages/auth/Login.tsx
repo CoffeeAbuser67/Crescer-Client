@@ -1,6 +1,7 @@
 // HERE
 import { useEffect, useState } from "react";
 import classNames from "classnames";
+import { AxiosError } from "axios";
 
 import {
   Box,
@@ -14,61 +15,52 @@ import {
 
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { create } from "zustand";
 
-type State = {
-  email: string;
-  password: string;
+
+import { useNavigate } from "react-router-dom";
+
+import useAuthService from "../../utils/authService";
+import handleAxiosError from "../../utils/handleAxiosError";
+
+const defaultValues = {
+  email: "matthew26@example.com", // default email value
+  password: "m_3YPcmG*#",         // default password value
 };
 
-type Action = {
-  updateEmail: (email: State["email"]) => void;
-  updatePassword: (password: State["password"]) => void;
-};
-
-const usePersonStore = create<State & Action>((set) => ({
-  email: "",
-  password: "",
-  updateEmail: (email) => set(() => ({ email: email })),
-  updatePassword: (password) => set(() => ({ password: password })),
-}));
-
-const ChildElement = () => {
-  return <> ✦──────➤ </>;
-};
 
 // ★ Login ─────────────────────────────────────────────────────➤
-// NOTE
-
-//    My register Serializer is receiving 2 passwords, but there is no reason for it since  it doesn't do any validation.
-
 const Login = () => {
-  const updateEmail = usePersonStore((state) => state.updateEmail);
-  const updatePassword = usePersonStore((state) => state.updatePassword);
+
+  const navigate = useNavigate()
+  const {login} = useAuthService();
+
 
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email address"),
     password: Yup.string().required("Password is required"),
   });
 
+  // ✪ formik
   const formik = useFormik({
-    initialValues: {
-      email: "",
-      password: "",
-    },
+    initialValues: defaultValues,
     validationSchema,
     onSubmit: async (values) => {
-      console.log(" ✉ :", values); // [LOG] ✉ 
+    
+      console.log("values  ✉ :", values); // [LOG] ✉ 
+      try {
+        await login(values)
+        navigate('/')   
+      } catch (err: unknown) {
+        handleAxiosError(err)
+      }
     },
   });
 
+
   return (
     //──✦─DOM────➤
-
     <div className="flex flex-col gap-10 w-full h-full justify-center items-center">
-      <ChildElement />
-
-      <Card size="4" className="w-full max-w-lg h-full max-h-96">
+      <Card size="4" className=" flex flex-col w-full max-w-lg  ">
         <Heading as="h2" size="8" trim="start" mb="7" color="orange">
           Crescer
         </Heading>
@@ -82,6 +74,7 @@ const Login = () => {
             <Text as="div" size="2" mb="1" weight="bold">
               Email
             </Text>
+
 
             <TextField.Root
               type="email"
@@ -108,6 +101,9 @@ const Login = () => {
                 Password
               </Text>
             </Flex>
+
+
+
             <TextField.Root
               type="password"
               name="password"

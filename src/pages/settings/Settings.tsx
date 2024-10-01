@@ -8,18 +8,18 @@ import {
   Code,
   Separator,
   Heading,
+  Text,
 } from "@radix-ui/themes";
 
 import { toast } from "react-toastify";
 import { faker } from "@faker-js/faker";
 
-import useAxiosErrorManager from "../../hooks/useAxiosErrorManager";
+import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
 
 import { User } from "../../types/user";
 import { Patient, PatientBriefData } from "../../types/patient";
 
-
-
+import { useTimerStore } from "../../store/timerStore";
 
 
 // <✪> DeleteSVG
@@ -122,28 +122,6 @@ const generateMockPatient = (): Patient => {
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 
-
-// ✪ Timer Store 
-import { create } from "zustand";
-
-type State = {
-  useTimer: boolean;
-  timer: number;
-};
-
-type Action = {
-  updateTimer: () => void; // No argument required here
-  updateUseTimer: (el : State['useTimer']) => void; 
-};
-
-const useTimerStore = create<State & Action>((set) => ({
-  useTimer: false,
-  timer: 20,
-  updateUseTimer: (el) => set(() => ({ useTimer:  el })), 
-  updateTimer: () => set((state) => ({ timer: state.timer - 1 })), 
-}));
-
-
 // ✪ Timer
 interface TimerProps {
   initialSeconds: number;
@@ -174,7 +152,9 @@ const Timer: React.FC<TimerProps> = () => {
 
 // ★ Settings ────────────────────────────────────────────────────────➤
 const Settings = () => {
-  const axios = useAxiosErrorManager();
+  const axios = useAxiosErrorInterceptor();
+
+  // _PIN_ Consume timer store
   const useTimer = useTimerStore((state) => state.useTimer)
   const updateUseTimer = useTimerStore((state) => state.updateUseTimer)
 
@@ -207,7 +187,18 @@ const Settings = () => {
     toast.success("Request successful");
   }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-  
+
+
+  // (●) logout
+  const logout = async () => {
+    const url = "/auth/logout/";
+    const response = await axios.post(url, {});
+    console.log("Response Status:", response.status); // [LOG] 
+    toast.success("Request successful");
+  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+
   // (●) addUser
   const addUser = async (body: User) => {
     const url = "/auth/registration/";
@@ -216,16 +207,22 @@ const Settings = () => {
     toast.success("Request successful");
   }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-  // (●) refreshToken
-  const refreshToken = async () => {
-    console.log("rfereshToken Invoked "); // [LOG] refreshToken
-    const url = "/auth/token/refresh/";
-    const response = await axios.post(url, {});
-    console.log("Response data:", response.data); // [LOG] 
-    console.log("Response status:", response.status); 
 
-    toast.success("Request successful");
-  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+  // // (●) refreshToken
+  // const refreshToken = async () => {
+
+  //   console.log("rfereshToken Invoked "); // [LOG] refreshToken
+  //   resetTimer()
+  //   const url = "/auth/token/refresh/";
+  //   const response = await axios.post(url, {});
+  //   console.log("Response data:", response.data); // [LOG] 
+  //   console.log("Response status:", response.status); 
+
+  //   toast.success("Request successful");
+
+
+  // }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
   // {●} addPatient
   const addPatient = async (body: Patient) => {
@@ -266,6 +263,11 @@ const Settings = () => {
           <Heading size="5" className="text-green-900 mb-4">
             ── Token Timer ⏰ ──
           </Heading>
+
+          <Text className = 'text-green-900'>Access Token time  : 10 secs</Text>
+          <Text className = 'text-green-900'>Refresh Token time : 20 secs</Text>
+          <Text className = 'text-green-900'>REFRESHTOKEN ROTATION: false</Text>
+
           {useTimer && <Timer initialSeconds={20} />}
         </Card>
 
@@ -278,8 +280,8 @@ const Settings = () => {
           </Heading>
 
           <DataList.Root>
-            {/* // _PIN_ /auth/login/  */}
 
+            {/* // _PIN_ /auth/login/  */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
                 {/*// <○> LockSVG */}
@@ -303,30 +305,42 @@ const Settings = () => {
                 </Flex>
               </DataList.Value>
             </DataList.Item>
-
             {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
-            {/* // _PIN_  /auth/token/refresh/  */}
+
+
+
+            {/* // _PIN_ /auth/logout/  */}
             <DataList.Item className="items-center">
               <DataList.Label minWidth="88px" className="items-center">
                 {/*// <○> LockSVG */}
                 <LockSVG />
+
                 <Code variant="ghost" className="ml-4">
-                  refresh token:
+                  peform logout:
                 </Code>
               </DataList.Label>
 
               <DataList.Value>
                 <Flex align="center">
                   <Code variant="ghost" className="mr-4">
-                    /auth/token/refresh/
+                    /auth/logout/
                   </Code>
-                  {/*// (○) refreshToken */}
-                  <Button variant="ghost" onClick={refreshToken}>
+
+                  {/*// (○) logout */}
+                  <Button variant="ghost" onClick={logout}>
                     ↯
                   </Button>
                 </Flex>
               </DataList.Value>
             </DataList.Item>
+            {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
+
+
+
+
+            
+          
+
 
             {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
             {/* // _PIN_  /auth/registration/  */}

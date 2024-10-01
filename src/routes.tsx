@@ -11,6 +11,7 @@ const Login = lazy(() => import("./pages/auth/Login"));
 
 // . . . . . . . . . ➤
 const routes = [
+
   {
     path: "/",
     element: <Default />,
@@ -37,8 +38,6 @@ const routes = [
       },
     ],
   },
-
-
 
 
 

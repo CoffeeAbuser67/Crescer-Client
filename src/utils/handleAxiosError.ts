@@ -1,54 +1,44 @@
-import { useEffect } from "react";
-import axios from "axios";
+
+import { AxiosError } from "axios";
 import { toast } from "react-toastify";
-import { axiosPrivate } from "../api/axios";
-
-
-
- 
-
-const useRefreshToken = () => {
-
-
-
-
-
-
-
-
-
-  
-
-}
-
-
-
-
-
-
 
 
 // {●} handleAxiosError
 const handleAxiosError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
+  
+  if (error instanceof AxiosError) {
     if (error.response) {
-      // Server responded with a status code other than 2xx
+      // Server responded with a status code other than 2x
+
       console.error("Response Error:", {
-        status: error.response.status,
-        data: error.response.data,
-        headers: error.response.headers,
+        message: error.message,
+        status: error.status,
+
+        data: error.response?.data,
+
+        code: error.response.data?.code,
+        detail: error.response.data?.detail
       });
 
       // Handle specific error codes
       switch (error.response.status) {
-        case 401:
-          
         
-        toast.error("Unauthorized. Please log in.");
+        case 400:
+          toast.error("Invalid Credentials.");
           break;
+        
+        case 401:
+          toast.error("UNAUTHORIZED.");
+          break;
+
+        case 403:
+          toast.error("FORBIDDEN.");
+          break;
+
         case 500:
           toast.error("Internal server error. Please try again later.");
           break;
+
         default:
           toast.error(`Server Error: ${error.response.status}`);
       }
@@ -70,7 +60,8 @@ const handleAxiosError = (error: unknown) => {
       toast.error("An error occurred. Please try again.");
     }
 
-    console.error("Request Config:", error.config);
+    // console.error("Request Config:", error.config);
+
   } else if (error instanceof Error) {
     console.error("Non-Axios Error:", error.message);
     toast.error("An error occurred. Please try again.");
@@ -78,32 +69,6 @@ const handleAxiosError = (error: unknown) => {
     console.error("An unexpected error occurred.");
     toast.error("An unexpected error occurred.");
   }
-}; 
+};
 
-
-// {✪} useAxiosErrorManager
-const useAxiosErrorManager = () => {
-
-  useEffect(() => {
-    // Set up interceptors
-    const errorResponseInterceptor = axiosPrivate.interceptors.response.use(
-      response => response,
-      async (error) => {
-
-        // {○} handleAxiosError
-        handleAxiosError(error);
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      axiosPrivate.interceptors.response.eject(errorResponseInterceptor);
-    };
-  }, []);
-
-  return axiosPrivate
-}
-
-
-export default useAxiosErrorManager
-
+export default handleAxiosError

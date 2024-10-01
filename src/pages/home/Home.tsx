@@ -27,8 +27,11 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { Patient, PatientBriefData } from "../../types/patient";
-import useAxiosErrorManager from "../../hooks/useAxiosErrorManager";
+
+import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
 import Loader from "../../components/Loader";
+
+import handleAxiosError from "../../utils/handleAxiosError";
 
 // ● PatientCardProps
 
@@ -519,54 +522,58 @@ const AddPatient = () => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
-
-
 // ★ Home ─────────────────────────────────────────────────────➤
-  // WARN No type
-  // NOTE
-  // Need to define the patients official fields asap
-  // type Patient = {
-  //   patient_name: string;
-  //   parent_name: string;
-  //   phone_number?: string; // optional
-  //   email?: string; // optional
-  //   note?: string; // optional
-  //   country?: string; // should use ISO 3166-1 alpha-2 code
-  //   city?: string;
-  //   birth_date?: string; // formatted as YYYY-MM-DD
-  //   expiration_date?: string; // formatted as YYYY-MM-DD
-  // };
+// WARN No type
+// NOTE
+// Need to define the patients official fields asap
+// type Patient = {
+//   patient_name: string;
+//   parent_name: string;
+//   phone_number?: string; // optional
+//   email?: string; // optional
+//   note?: string; // optional
+//   country?: string; // should use ISO 3166-1 alpha-2 code
+//   city?: string;
+//   birth_date?: string; // formatted as YYYY-MM-DD
+//   expiration_date?: string; // formatted as YYYY-MM-DD
+// };
 
-  // Patient DataList component
+// Patient DataList component
 
-  // User validation
-  // User Page  ADMINx
+// User validation
+// User Page  ADMINx
 
-  // DDD phonenumber field
-  // IMAGE FIELD?
+// DDD phonenumber field
+// IMAGE FIELD?
 
-  // make types universal
+// make types universal
 
-  // messageria ?
-  // update Patient component
-  // Remove Patient Component
+// messageria ?
+// update Patient component
+// Remove Patient Component
 
 const Home = () => {
-
   const [activePatientId, setActivePatientId] = useState<number>();
   const [PatientList, setPatientList] = useState<PatientBriefData[]>([]);
 
-  const axios = useAxiosErrorManager();
+  const axios = useAxiosErrorInterceptor();
 
   useEffect(() => {
-
     // ✳ ✦── getAllPatients ✉───➤
     const getAllPatients = async () => {
-      const url = "/patients/";
-      const response = await axios.get(url);
-      setPatientList(response.data);
-      console.log("getAllPatients"); // [LOG] getAllPatients ✿ ❀
+      try {
+        const url = "/patients/";
+        const response = await axios.get(url);
+        setPatientList(response?.data);
+        console.log("getAllPatients"); // [LOG] getAllPatients ✿ ❀ 
+      } catch (err: unknown) {
+        if (err) {
+          handleAxiosError(err)
+
+          // console.log("✉  err.status:", err?.status); // [LOG] ✉ 
+          // console.log("✉  err.message:", err?.message); // [LOG] ✉ 
+        }
+      }
     };
 
     getAllPatients();
@@ -624,7 +631,6 @@ const Home = () => {
                     ))
                   )}
                 </Table.Body>
-                
               </Table.Root>
             </ScrollArea>
           </Card>
