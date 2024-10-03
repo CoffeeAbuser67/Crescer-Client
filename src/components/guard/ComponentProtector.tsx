@@ -1,53 +1,31 @@
 import React from 'react';
-// import { useUserStore } from './userStore';
 
-// interface GuardProps {
-//   allowedRoles: string[];
-//   children: React.ReactNode;
-// }
-
-
-// HERE ComponentProtector
-// const ComponentProtector: React.FC<GuardProps> = ({ allowedRoles, children }) => {
-//   const { role } = useUserStore();
-
-//   if (!allowedRoles.includes(role)) {
-
-//     return <></>;
-  
-//   }
-
-//   return <>{children}</>;
-
-// };
-
-
-
+import { useUserStore } from "../../store/userStore";
 
 
 interface GuardProps {
+  allowedRoles: number[];
   children: React.ReactNode;
 }
 
-// HERE ComponentProtector
-const ComponentProtector: React.FC<GuardProps>  = ({children}) => {
-  // const { role } = useUserStore();
+// ✪ ComponentProtector
+const ComponentProtector: React.FC<GuardProps>  = ({allowedRoles, children}) => {
+  const user_role = useUserStore((state) => state.user_role);
 
-  // if (!allowedRoles.includes(role)) {
 
-  //   return <></>;
-  
-  // }
-
-  // return <>{children}</>;
-
-  return <></>;
-
+  return(
+    <>
+      {
+        !user_role 
+          ? <></> 
+          : allowedRoles.includes(user_role) 
+            ? <>{children}</> 
+            : <></> 
+      }
+    </>
+  )
 
 };
-
-
-
 
 
 export default ComponentProtector

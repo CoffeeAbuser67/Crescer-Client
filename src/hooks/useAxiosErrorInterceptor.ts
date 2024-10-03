@@ -1,8 +1,5 @@
 import { useEffect } from "react";
-
 import { axiosPrivate} from "../utils/axios";
-import { useTimerStore } from "../store/timerStore";
-
 import useAuthService from "../utils/authService";
 
 
@@ -11,8 +8,6 @@ const useAxiosErrorInterceptor = () => {
 
   const {tryRefreshToken, logout} = useAuthService()
 
-  // WARN Consume TimerStore remove in production
-  const resetTimer = useTimerStore((state) => state.resetTimer)
 
   useEffect(() => {
     // Set up interceptors
@@ -29,14 +24,13 @@ const useAxiosErrorInterceptor = () => {
             const isTokenRefreshed = await tryRefreshToken()
         
             if (isTokenRefreshed){
-              resetTimer() // WARN Remove this in production
               console.log('Authentication Refreshed') //[LOG] Authentication Refreshed  
               return axiosPrivate(originalRequest)
             }
           }
-
         }catch(error){
-          logout();
+          // {○} logout
+          await logout();
           return Promise.reject(error);
         }
       }
@@ -45,7 +39,7 @@ const useAxiosErrorInterceptor = () => {
     return () => {
       axiosPrivate.interceptors.response.eject(errorResponseInterceptor);
     };
-  }, []);
+  }, [tryRefreshToken, logout]);
 
   return axiosPrivate;
 };

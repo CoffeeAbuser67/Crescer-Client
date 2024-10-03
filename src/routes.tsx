@@ -9,12 +9,27 @@ const Home = lazy(() => import("./pages/home/Home"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
 const Login = lazy(() => import("./pages/auth/Login"));
 
+
+
+
 // . . . . . . . . . ➤
+
+const ROLES = {
+
+  'User': 3,
+  'Staff': 2,
+  'Admin': 1,
+  'AnyRole':0 
+}
+// . . . . . . . . . ➤
+
+
+
 const routes = [
   {
     path: "/",
     element: (
-      <RouteProtector>
+      <RouteProtector allowedRoles={[ROLES.Staff, ROLES.User, ROLES.Admin]}> 
         <Default />
       </RouteProtector>
     ),

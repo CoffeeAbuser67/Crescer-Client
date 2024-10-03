@@ -13,22 +13,21 @@ const useAuthService = () => {
   const navigate = useNavigate()
   const setActiveUser = useUserStore((state) => state.setActiveUser);
   const removeActiveUser = useUserStore((state) => state.removeActiveUser);
+  // const user = useUserStore((state) => state.user);
+
 
   // {●} login
   const login = async (values: Credentials) => {
-
-    console.log("values  inside login service✉ :", values); // [LOG] ✉
-
     try {
       const response = await axiosDefault.post("/auth/login/", values);
-      const user = response?.data?.user;
-      setActiveUser(user);
+      const active_user = response?.data?.user;
+      setActiveUser(active_user);
+      return active_user
     } catch (error) {
       return Promise.reject(error);
     }
-
-  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
+     // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+  }
 
   // {●} tryRefreshToken
   const tryRefreshToken = async () => {
@@ -45,7 +44,9 @@ const useAuthService = () => {
     } catch (error) {
       return Promise.reject(error);
     }
+  
   }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 
   // {●} logout
   const logout = async () => {
@@ -63,7 +64,8 @@ const useAuthService = () => {
     } catch (error) {
       return Promise.reject(error);
     }
-  };
+  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 
   return { tryRefreshToken, logout, login };
 };

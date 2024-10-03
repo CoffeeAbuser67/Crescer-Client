@@ -106,7 +106,6 @@ const Navbar = () => {
   const {logout} = useAuthService()
 
   const handleClick = () => {
-    console.log('inside the handle click') //[LOG]
     logout()
   }
   

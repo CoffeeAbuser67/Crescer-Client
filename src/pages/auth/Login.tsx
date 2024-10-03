@@ -20,8 +20,6 @@ import { useNavigate } from "react-router-dom";
 
 import useAuthService from "../../utils/authService";
 import handleAxiosError from "../../utils/handleAxiosError";
-
-import { useUserStore } from "../../store/userStore";
 import { toast } from "react-toastify";
 
 const defaultValues = {
@@ -33,14 +31,7 @@ const defaultValues = {
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuthService();
-  const user = useUserStore((state) => state.user);
 
-  useEffect(() => {
-    if (user) {
-      const message = `Welcome, ${user?.first_name}! `;
-      toast.success(message);
-    }
-  }, [user]);
 
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email address"),
@@ -51,14 +42,16 @@ const Login = () => {
   const formik = useFormik({
     initialValues: defaultValues,
     validationSchema,
-    onSubmit: async (values) => {
 
+    onSubmit: async (values) => {
       try {
-        await login(values);
+        const active_user = await login(values);
+        const message = `Welcome, ${active_user?.first_name}! `;
+        toast.success(message);
         navigate("/");
       } catch (err: unknown) {
         handleAxiosError(err);
-      }
+      } 
     },
   });
 

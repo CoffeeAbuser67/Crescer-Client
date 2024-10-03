@@ -27,7 +27,9 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import { Patient, PatientBriefData } from "../../types/patient";
-import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
+
+import { axiosPrivate} from "../../utils/axios";
+
 import Loader from "../../components/Loader";
 import handleAxiosError from "../../utils/handleAxiosError";
 import ComponentProtector from "../../components/guard/ComponentProtector";
@@ -38,6 +40,18 @@ interface PatientCardProps {
   activePatientId: number | undefined;
   setActivePatientId: (id: number) => void;
 }
+
+
+
+
+const ROLES = {
+  'User': 3,
+  'Staff': 2,
+  'Admin': 1,
+  'AnyRole':0 
+}
+
+
 
 // <●> AddButtonSVG
 const AddButtonSVG = () => (
@@ -308,7 +322,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
 
           <Flex direction="column" className="items-end ">
             {/* // (○) PopoverAction */}
-            <ComponentProtector>
+            <ComponentProtector allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]} >
               <PopoverAction />
             </ComponentProtector>
 
@@ -553,14 +567,14 @@ const Home = () => {
   const [activePatientId, setActivePatientId] = useState<number>();
   const [PatientList, setPatientList] = useState<PatientBriefData[]>([]);
 
-  const axios = useAxiosErrorInterceptor();
+
 
   useEffect(() => {
     // ✳ ✦── getAllPatients ✉───➤
     const getAllPatients = async () => {
       try {
         const url = "/patients/";
-        const response = await axios.get(url);
+        const response = await axiosPrivate.get(url);
         setPatientList(response?.data);
         console.log("getAllPatients"); // [LOG] getAllPatients ✿ ❀
       } catch (err: unknown) {
@@ -575,7 +589,7 @@ const Home = () => {
 
     getAllPatients();
     // WARN eslint wants axios on dependency array..
-  }, [axios]);
+  }, []);
 
   return (
     //──✦─DOM────➤
@@ -595,9 +609,10 @@ const Home = () => {
                 <Heading color="orange">Patients </Heading>
 
                 {/* // ○ AddPatient*/}
-                <ComponentProtector>
+                <ComponentProtector allowedRoles={[ROLES.Staff, ROLES.Admin,  ROLES.User]}>
                   <AddPatient />
                 </ComponentProtector>
+
               </Flex>
 
               <Table.Root>
