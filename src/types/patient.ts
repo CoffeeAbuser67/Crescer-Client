@@ -1,4 +1,7 @@
-// ✪ Patient
+
+
+
+// ● Patient
 export type Patient = {
   patient_name: string;
   parent_name: string;
@@ -12,6 +15,16 @@ export type Patient = {
 };
 
 
+// ● PaginatedResponse
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+
+// ● PatientBriefData
 export type PatientBriefData = {
   pkid: number;
   patient_name: string;
