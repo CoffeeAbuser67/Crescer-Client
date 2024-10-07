@@ -16,6 +16,7 @@ import {
   Inset,
   ScrollArea,
   TextField,
+  Grid,
   DataList,
   Dialog,
   Popover,
@@ -35,15 +36,12 @@ import {
   PaginatedResponse,
 } from "../../types/patient";
 
-
-
 // [●] CreditCardDemoProps
 interface CreditCardDemoProps {
   patientName: string | undefined;
   parentName: string | undefined;
   expire: string | undefined;
 }
-
 
 // [●] PatientCardProps
 interface PatientCardProps {
@@ -238,9 +236,12 @@ const PopoverAction = () => (
   </Popover.Root>
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
 // ✪ CreditCardDemo
-const CreditCardDemo : React.FC<CreditCardDemoProps>= ({ patientName , parentName , expire }) => {
+const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
+  patientName,
+  parentName,
+  expire,
+}) => {
   // Format the card number for display
 
   return (
@@ -255,16 +256,11 @@ const CreditCardDemo : React.FC<CreditCardDemoProps>= ({ patientName , parentNam
       <div className="mt-4">
         <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
         <p className="text-xl font-mono mt-1">
-          {patientName}
+          {patientName && `${patientName} ✿`}
         </p>
       </div>
 
-      <div className="mt-2 flex justify-between">
-
-        <div>
-          <h4 className="text-sm uppercase tracking-wide ">Reponsible</h4>
-          <p className="text-sm"> {parentName} </p>
-        </div>
+      <div className="mt-8 pb-0 flex justify-end">
         <div>
           <h4 className="text-sm uppercase tracking-wide">Expires</h4>
           <p className="text-sm">{expire} </p>
@@ -465,45 +461,40 @@ const PatientCard: React.FC<PatientCardProps> = ({
           }`
         )}
       >
-        <Flex gap="3" align="center" className="justify-between">
-          <Flex gap="3" align="center" className="justify-between">
-            <Avatar
-              size="4"
-              src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?&w=256&h=256&q=70&crop=focalpoint&fp-x=0.5&fp-y=0.3&fp-z=1&fit=crop"
-              fallback="T"
-            />
+        <Box className="flex justify-stretch items-center">
+          <Avatar
+            size="3"
+            src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?&w=256&h=256&q=70&crop=focalpoint&fp-x=0.5&fp-y=0.3&fp-z=1&fit=crop"
+            fallback="T"
+          />
 
-            <Box>
-              <Text as="div" size="2" weight="bold" className="mb-2">
-                {`${patient.patient_name}`}
-              </Text>
-              <Text as="div" size="2" color="gray">
-                {`${patient.age}`}
-              </Text>
-            </Box>
-          </Flex>
+          <Text as="div" size="2" weight="bold" className=" flex-1 mb-2">
+            {`${patient.patient_name}`}
+          </Text>
 
-          <Flex direction="column" className="items-end ">
-            {/* // (○) PopoverAction */}
-            <ComponentProtector
-              allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
-            >
-              <PopoverAction />
-            </ComponentProtector>
+          <Text as="div" size="2" color="gray">
+            {`${patient.age}`}
+          </Text>
 
-            {/* // (○) Badge */}
-            <Badge color="jade" variant="soft" radius="full">
-              Authorized
-            </Badge>
-          </Flex>
-        </Flex>
+          {/* // (○) Badge */}
+          <Badge color="jade" variant="soft" radius="full">
+            Authorized
+          </Badge>
+
+          {/* // (○) PopoverAction */}
+          <ComponentProtector
+            allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
+          >
+            <PopoverAction />
+          </ComponentProtector>
+        </Box>
       </Card>
     </Box>
   );
 }; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// <✪> LeftBox
-const LeftBox: React.FC<LeftBoxProps> = ({
+// <✪> PatientListBox
+const PatientListBox: React.FC<LeftBoxProps> = ({
   activePatientID,
   setActivePatientID,
 }) => {
@@ -555,90 +546,191 @@ const LeftBox: React.FC<LeftBoxProps> = ({
 
   // ── DOM
   return (
-    <Box className="flex">
-      <Card className="flex flex-col gap-8 pt-8 pb-16 pl-10 justify-center items-center">
-        <ScrollArea
-          type="auto"
-          scrollbars="vertical"
-          radius="full"
-          style={{ height: 750 }}
-          className="pr-10"
-        >
-          <Flex gap="3" align="center" className="justify-between">
-            <Heading color="orange">Patients </Heading>
+    <Card size="4" className=" flex flex-col justify-stretch h-full">
+      <ScrollArea
+        type="auto"
+        scrollbars="vertical"
+        radius="full"
+        style={{ height: 750 }}
+        className="pr-10"
+      >
+        <Flex gap="3" align="center" className="justify-between">
+          <Heading color="orange">Patients </Heading>
 
-            {/* // ○ AddPatient*/}
-            <ComponentProtector
-              allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
-            >
-              <AddPatient />
-            </ComponentProtector>
-          </Flex>
+          {/* // ○ AddPatient*/}
+          <ComponentProtector
+            allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
+          >
+            <AddPatient />
+          </ComponentProtector>
+        </Flex>
 
-          <Table.Root>
-            <Table.Header>
+        <Table.Root>
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {loading ? (
               <Table.Row>
-                <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
+                <Table.RowHeaderCell>
+                  <Loader />
+                </Table.RowHeaderCell>
               </Table.Row>
-            </Table.Header>
-
-            <Table.Body>
-              {loading ? (
-                <Table.Row>
+            ) : (
+              PatientList.map((patient) => (
+                <Table.Row key={patient.pkid}>
                   <Table.RowHeaderCell>
-                    <Loader />
+                    {/* // (○) PatientCard*/}
+                    <PatientCard
+                      patient={patient}
+                      activePatientID={activePatientID}
+                      setActivePatientID={setActivePatientID}
+                    />
                   </Table.RowHeaderCell>
                 </Table.Row>
-              ) : (
-                PatientList.map((patient) => (
-                  <Table.Row key={patient.pkid}>
-                    <Table.RowHeaderCell>
-                      {/* // (○) PatientCard*/}
-                      <PatientCard
-                        patient={patient}
-                        activePatientID={activePatientID}
-                        setActivePatientID={setActivePatientID}
-                      />
-                    </Table.RowHeaderCell>
-                  </Table.Row>
-                ))
-              )}
-            </Table.Body>
-          </Table.Root>
-        </ScrollArea>
+              ))
+            )}
+          </Table.Body>
+        </Table.Root>
+      </ScrollArea>
 
-        {/*//  ○ ReactPaginate */}
-        <ReactPaginate
-          className="flex justify-center items-center mr-11"
-          nextLabel=" >"
-          onPageChange={handlePageChange}
-          pageRangeDisplayed={3}
-          marginPagesDisplayed={1}
-          pageCount={totalPages}
-          previousLabel="< "
-          pageClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 hover:opacity-100 mx-0.5"
-          pageLinkClassName="inline-flex w-full h-full justify-center items-center"
-          previousClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 mx-0.5"
-          previousLinkClassName="inline-flex w-full h-full justify-center items-center"
-          nextClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 mx-0.5"
-          nextLinkClassName="inline-flex w-full h-full justify-center items-center"
-          disabledClassName="opacity-20 cursor-default"
-          disabledLinkClassName="opacity-20 cursor-default"
-          breakLabel="..."
-          breakClassName="mx-0.5"
-          breakLinkClassName="page-link"
-          containerClassName="pagination"
-          activeClassName="font-bold border rounded shadow-md bg-neutral-900 text-orange-500 border-orange-500"
-          renderOnZeroPageCount={null}
-          disableInitialCallback={true}
-        />
-      </Card>
-    </Box>
+      {/*//  ○ ReactPaginate */}
+      <ReactPaginate
+        className="flex justify-center items-center mr-11 mt-11"
+        nextLabel=" >"
+        onPageChange={handlePageChange}
+        pageRangeDisplayed={3}
+        marginPagesDisplayed={1}
+        pageCount={totalPages}
+        previousLabel="< "
+        pageClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 hover:opacity-100 mx-0.5"
+        pageLinkClassName="inline-flex w-full h-full justify-center items-center"
+        previousClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 mx-0.5"
+        previousLinkClassName="inline-flex w-full h-full justify-center items-center"
+        nextClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 mx-0.5"
+        nextLinkClassName="inline-flex w-full h-full justify-center items-center"
+        disabledClassName="opacity-20 cursor-default"
+        disabledLinkClassName="opacity-20 cursor-default"
+        breakLabel="..."
+        breakClassName="mx-0.5"
+        breakLinkClassName="page-link"
+        containerClassName="pagination"
+        activeClassName="font-bold border rounded shadow-md bg-neutral-900 text-orange-500 border-orange-500"
+        renderOnZeroPageCount={null}
+        disableInitialCallback={true}
+      />
+    </Card>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// <✪> RightBox
-const RightBox: React.FC<RightBoxProps> = ({ patientID }) => {
+// ● NoteBox
+const NoteBox = () => {
+  return (
+    <Card size="2" className="h-full">
+      <Box position="relative" pt="1">
+        <Box position="absolute" top="0" bottom="0" width="1px" ml="-0.5px">
+          <Separator
+            size="4"
+            orientation="vertical"
+            mt="2"
+            style={{
+              background:
+                "linear-gradient(to bottom, var(--orange-6) 90%, transparent)",
+            }}
+          />
+        </Box>
+
+        <Box pl="6">
+          <Flex direction="column" gap="4">
+            <Box>
+              <Text as="div" size="1" color="gray" mb="1">
+                Note:
+              </Text>
+              <Text as="p" size="2">
+                ...
+              </Text>
+            </Box>
+          </Flex>
+        </Box>
+      </Box>
+    </Card>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ● DetailsBox
+const DetailsBox = () => {
+  return (
+    <Card size="2">
+      <Heading as="h3" size="4" mb="4" color="orange">
+        Patient Name Here
+      </Heading>
+      <Flex gap="4" direction="column" pr="6">
+        <Box>
+          <Text as="div" weight="bold" size="2" mb="1">
+            Nome do responsável:
+          </Text>
+          <Text as="p" color="gray" size="2">
+            Package picked up from the warehouse in Phoenix, TX
+          </Text>
+        </Box>
+
+        <Box>
+          <Text as="div" weight="bold" size="2" mb="1">
+            Telefone:
+          </Text>
+          <Text as="p" color="gray" size="2">
+            Package picked up from the warehouse in Phoenix, TX
+          </Text>
+        </Box>
+
+        <Box>
+          <Text as="div" weight="bold" size="2" mb="1">
+            Email:
+          </Text>
+          <Text as="div" size="2" color="gray">
+            512 Oakwood Avenue, Unit 201, Greenville, SC 67890
+          </Text>
+        </Box>
+
+        <Grid columns="3">
+          <Box>
+            <Text as="div" weight="bold" size="2" mb="1">
+              Status
+            </Text>
+            <Flex height="24px" align="center">
+              <Badge color="green" ml="-2px">
+                On time
+              </Badge>
+            </Flex>
+          </Box>
+          <Box>
+            <Text as="div" weight="bold" size="2" mb="1">
+              Nascimento:
+            </Text>
+            <Text as="div" color="gray" size="2">
+              12/07/1992
+            </Text>
+          </Box>
+
+          <Box>
+            <Text as="div" weight="bold" size="2" mb="1">
+              Vencimento
+            </Text>
+            <Text as="div" color="gray" size="2">
+              33/33/2000
+            </Text>
+          </Box>
+        </Grid>
+      </Flex>
+    </Card>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// <✪> CreditCardWrapper
+const CreditCardWrapper: React.FC<RightBoxProps> = ({ patientID }) => {
   const [loadingR, setLoadingR] = useState<boolean>(false);
   const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
 
@@ -654,7 +746,6 @@ const RightBox: React.FC<RightBoxProps> = ({ patientID }) => {
           setPatientDetails(response?.data);
           console.log("Patient Details", response?.data); // [LOG] Patient Details ✿
         }
-
       } catch (err: unknown) {
         if (err) {
           handleAxiosError(err);
@@ -667,22 +758,14 @@ const RightBox: React.FC<RightBoxProps> = ({ patientID }) => {
   }, [patientID]); //  ✳ ✦── loadPatientsDetails ✉───➤ ✿
 
   return (
-    <Box>
-      <Flex direction="column" gap="2">
-        {/*//_PIN_ TOP CARD */}
-        <Card className="py-8 px-8 flex justify-center">
-          {/* // ○ CreditCardDemo*/}
-          <CreditCardDemo patientName={patientDetails?.patient_name} parentName = {patientDetails?.parent_name}  expire = {patientDetails?.expiration_date} />
-          
-        </Card>
-
-        {/*//_PIN_ BOTTOM CARD */}
-        <Card className=" py-8 px-8">
-          {/* // (○) PopoverAction*/}
-          <PopoverAction />
-        </Card>
-      </Flex>
-    </Box>
+    <Card size="2" className="flex justify-center items-center h-full">
+      {/* // ○ CreditCardDemo*/}
+      <CreditCardDemo
+        patientName={patientDetails?.patient_name}
+        parentName={patientDetails?.parent_name}
+        expire={patientDetails?.expiration_date}
+      />
+    </Card>
   );
 };
 
@@ -692,21 +775,32 @@ const Home = () => {
   const [activePatientID, setActivePatientID] = useState<number | null>(null);
 
   return (
-    //──✦─DOM────➤
+    //──✦─DOM───➤
     <>
-      <Flex id="canvas" gap="4" align="center" className="justify-evenly">
-        {/*///_PIN_  LEFT BOX */}
+      <Box id="canvas" className="h-full grid grid-rows-3 grid-flow-col gap-4">
+        <Box className="row-start-1 row-span-3 ">
+          {/* // <○> PatientListBox*/}
+          <PatientListBox
+            activePatientID={activePatientID}
+            setActivePatientID={setActivePatientID}
+          />
+        </Box>
 
-        {/* // <○> LeftBox*/}
-        <LeftBox
-          activePatientID={activePatientID}
-          setActivePatientID={setActivePatientID}
-        />
+        {/* // <○> CreditCardWrapper*/}
+        <Box className="row-start-1 row-span-1 ">
+          <CreditCardWrapper patientID={activePatientID} />
+        </Box>
 
-        {/*///_PIN_   RIGHT BOX */}
-        <RightBox patientID={activePatientID} />
-        {/* <h1> ✿ ❀ </h1> */}
-      </Flex>
+        {/* // <○> DetailsBox*/}
+        <Box className="row-start-2 row-span-1 ">
+          <DetailsBox />
+        </Box>
+
+        {/* // <○> NoteBox*/}
+        <Box className="row-start-3 row-span-1 ">
+          <NoteBox />
+        </Box>
+      </Box>
     </>
   );
 };

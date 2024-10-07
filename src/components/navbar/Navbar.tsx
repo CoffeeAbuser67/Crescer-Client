@@ -113,7 +113,7 @@ const Navbar = () => {
 
   //────────DOM─────➤
   return (
-    <Card id="navbar" variant="classic" className="mb-14 rounded-t-none">
+    <Card id="navbar" variant="classic" className="mb-7 rounded-t-none">
       <div className=" flex justify-between items-center">
         <div className=" flex items-center">
           {/* // <○> CrescerFlowerSVG */}
