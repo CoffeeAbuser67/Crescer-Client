@@ -29,23 +29,15 @@ import "yup-phone-lite";
 
 import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
 
-
 import { usePatientStore } from "../../store/patientStore";
 import { axiosPrivate, axiosDefault } from "../../utils/axios";
 import Loader from "../../components/Loader";
 import handleAxiosError from "../../utils/handleAxiosError";
 import ComponentProtector from "../../components/guard/ComponentProtector";
-import {
-  Patient,
-  PatientBriefData,
-  PaginatedResponse,
-} from "../../types/patient";
 
+import usePatientService from "../../utils/patientService";
 
-
-
-
-
+import { Patient, PatientBriefData } from "../../types/patient";
 
 // [●] CreditCardDemoProps
 interface CreditCardDemoProps {
@@ -57,8 +49,6 @@ interface CreditCardDemoProps {
 // [●] PatientCardProps
 interface PatientCardProps {
   patient: PatientBriefData;
-  activePatientID: number | null;
-  setActivePatientID: (id: number | null) => void;
 }
 
 // [●] LeftBoxProps
@@ -167,6 +157,7 @@ const DotsSVG = () => (
 const AddPatient = () => {
   const [open, setOpen] = useState(false);
   const axios = useAxiosErrorInterceptor();
+  const { loadPatients } = usePatientService();
 
   // const brazilianPhoneNumberSchema = Yup.string()
   //   // Brzillian phone Number validation
@@ -205,11 +196,9 @@ const AddPatient = () => {
       // ✳ ↯ ── Add Patient ✉ ─── ↯
       try {
         const url = "/create_patient/";
-        const res = await axios.post(url, values, {
-          withCredentials: true,
-        });
-
-        console.log("response :", res); // [LOG] response status ➤
+        const res = await axios.post(url, values);
+        console.log("response status:", res.status); // [LOG] response status ➤
+        await loadPatients();
       } catch (err) {
         console.log("err", err); // [LOG] err  ➤
         handleAxiosError(err);
@@ -365,37 +354,59 @@ const AddPatient = () => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// (●) RemovePatient
-const RemovePatient = () => (
-  <>
-    <AlertDialog.Root>
-      <AlertDialog.Trigger>
-        <Button color="crimson" variant="ghost">
-          Remove
-        </Button>
-      </AlertDialog.Trigger>
+// <●> RemovePatient
+const RemovePatient = () => {
+  const axios = useAxiosErrorInterceptor();
+  const patientID = usePatientStore((state) => state.patientID);
+  const { loadPatients } = usePatientService();
 
-      <AlertDialog.Content maxWidth="500px">
-        <AlertDialog.Title>Delete Patient Card</AlertDialog.Title>
-        <AlertDialog.Description size="2">
-          Are you sure you want to delete this card? This action is permanent
-          and cannot be undone.
-        </AlertDialog.Description>
+  const peformRemove = async () => {
+    try {
+      console.log("id is :", patientID); // [LOG]  ➤
+      const url = `/patientsRUD/${patientID}/`;
+      const res = await axios.delete(url);
+      console.log("response :", res); // [LOG]  ➤
+      await loadPatients();
+    } catch (err) {
+      console.log("err", err); // [LOG]   ➤
+      handleAxiosError(err);
+    }
+  };
 
-        <Flex gap="3" justify="end">
-          <AlertDialog.Cancel>
-            <Button variant="soft" color="gray">
-              Cancel
-            </Button>
-          </AlertDialog.Cancel>
-          <AlertDialog.Action>
-            <Button color="red">Delete</Button>
-          </AlertDialog.Action>
-        </Flex>
-      </AlertDialog.Content>
-    </AlertDialog.Root>
-  </>
-); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+  return (
+    <>
+      <AlertDialog.Root>
+        <AlertDialog.Trigger>
+          <Button color="crimson" variant="ghost">
+            Remove
+          </Button>
+        </AlertDialog.Trigger>
+
+        <AlertDialog.Content maxWidth="500px">
+          <AlertDialog.Title>Delete Patient Card</AlertDialog.Title>
+          <AlertDialog.Description size="2">
+            Are you sure you want to delete this card? This action is permanent
+            and cannot be undone.
+          </AlertDialog.Description>
+
+          <Flex gap="3" justify="end">
+            <AlertDialog.Cancel>
+              <Button variant="soft" color="gray">
+                Cancel
+              </Button>
+            </AlertDialog.Cancel>
+
+            <AlertDialog.Action>
+              <Button onClick={peformRemove} color="red">
+                Delete
+              </Button>
+            </AlertDialog.Action>
+          </Flex>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
+    </>
+  );
+}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // (●) UpdatePatient
 const UpdatePatient = () => (
@@ -429,13 +440,12 @@ const PopoverAction = () => (
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // <●> PatientCard
-const PatientCard: React.FC<PatientCardProps> = ({
-  patient,
-  activePatientID,
-  setActivePatientID,
-}) => {
+const PatientCard: React.FC<PatientCardProps> = ({ patient }) => {
+  const patientID = usePatientStore((state) => state.patientID);
+  const setPatientID = usePatientStore((state) => state.setPatientID);
+
   const handleCardClick = (id: number) => {
-    setActivePatientID(id);
+    setPatientID(id);
   };
 
   // ── DOM
@@ -448,7 +458,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
         className={classNames(
           "cursor-pointer border opacity-75 hover:shadow-lg hover:opacity-100 ",
           `${
-            activePatientID === patient.pkid
+            patientID === patient.pkid
               ? "border-orange-500 opacity-100"
               : "border-transparent opacity-75"
           }`
@@ -472,9 +482,15 @@ const PatientCard: React.FC<PatientCardProps> = ({
           </Text>
 
           {/* // (○) Badge */}
-          <Badge color="jade" variant="soft" radius="full">
-            Authorized
-          </Badge>
+          {patient.isValid ? (
+            <Badge color="jade" variant="soft" radius="full">
+              Authorized
+            </Badge>
+          ) : (
+            <Badge color="crimson" variant="soft" radius="full">
+              Expired
+            </Badge>
+          )}
 
           {/* // (○) PopoverAction */}
           <ComponentProtector
@@ -489,52 +505,27 @@ const PatientCard: React.FC<PatientCardProps> = ({
 }; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // <✪> PatientListBox
-const PatientListBox: React.FC<LeftBoxProps> = ({
-  activePatientID,
-  setActivePatientID,
-}) => {
-  const PAGE_SIZE = 10;
-  const [PatientList, setPatientList] = useState<PatientBriefData[]>([]);
-  const [count, setCount] = useState<number>(0); //WARN no need of a count state until now
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(0);
+const PatientListBox = () => {
+  const page = usePatientStore((state) => state.page);
+  const setPage = usePatientStore((state) => state.setPage);
+  const patientList = usePatientStore((state) => state.patientList);
+  const totalPages = usePatientStore((state) => state.totalPages);
+
   const [loading, setLoading] = useState<boolean>(false);
 
+  const { loadPatients } = usePatientService();
+
   useEffect(() => {
-    // ✳ ✦── loadPatients ✉───➤ ❀
-    const loadPatients = async (page: number = 1) => {
+    // ✳ ✦── reloadPatients ✉───➤ ❀
+    const reloadPatients = async () => {
       setLoading(true);
-      try {
-        const url = "/patientsList/";
-        console.log("Active Page : ", page); // [LOG]
-
-        const response = await axiosDefault.get(url, {
-          params: { page },
-          withCredentials: true,
-        });
-
-        setPatientList(response?.data?.results);
-
-        const _count = response?.data?.count;
-        setCount(_count);
-        setTotalPages(getTotalPages(_count)); // (○) getTotalPages
-
-        console.log("AllPatients", response?.data); // [LOG] AllPatients ✿
-      } catch (err: unknown) {
-        if (err) {
-          handleAxiosError(err);
-        }
-      }
+      await loadPatients();
       setLoading(false);
     };
+    reloadPatients();
 
-    loadPatients(page);
-  }, [page]); //  ✳ ✦── loadPatients ✉───➤ ✿ ❀
-
-  // (●) getTotalPages
-  const getTotalPages = (count: number): number => {
-    return Math.ceil(count / PAGE_SIZE);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]); //  ✳ ✦── reloadPatients ✉───➤ ✿
 
   // (●) handlePageChange
   const handlePageChange = (event) => {
@@ -571,15 +562,11 @@ const PatientListBox: React.FC<LeftBoxProps> = ({
               </Table.RowHeaderCell>
             </Table.Row>
           ) : (
-            PatientList.map((patient) => (
+            patientList.map((patient) => (
               <Table.Row key={patient.pkid}>
                 <Table.RowHeaderCell>
                   {/* // <○> PatientCard*/}
-                  <PatientCard
-                    patient={patient}
-                    activePatientID={activePatientID}
-                    setActivePatientID={setActivePatientID}
-                  />
+                  <PatientCard patient={patient} />
                 </Table.RowHeaderCell>
               </Table.Row>
             ))
@@ -616,8 +603,11 @@ const PatientListBox: React.FC<LeftBoxProps> = ({
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ✪ NoteBox
-const NoteBox = () => {
+
+
+// <✪> NoteBox
+const NoteBox = ({note}: {note: string | undefined} ) => {
+  
   return (
     <Card size="2" className="h-full p-8">
       <ScrollArea
@@ -643,11 +633,11 @@ const NoteBox = () => {
           <Box pl="6">
             <Flex direction="column" gap="4">
               <Box>
-                <Text as="div" size="1" color="gray" mb="1">
+                <Text as="div" size="2" color="orange" mb="1">
                   Note:
                 </Text>
                 <Text as="p" size="2">
-                  ...
+                  {note}
                 </Text>
               </Box>
             </Flex>
@@ -658,8 +648,11 @@ const NoteBox = () => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ✪ DetailsBox
+// <✪> DetailsBox
 const DetailsBox: React.FC<DetailsBoxProps> = ({ patient }) => {
+  const patientID = usePatientStore((state) => state.patientID);
+  const patientList = usePatientStore((state) => state.patientList);
+
   return (
     <Card size="2" className="h-full p-8">
       <Heading as="h3" size="4" mb="6" color="orange">
@@ -727,9 +720,17 @@ const DetailsBox: React.FC<DetailsBoxProps> = ({ patient }) => {
           </Text>
 
           <Flex height="24px" align="center">
-            <Badge color="green" ml="-2px">
-              On time
-            </Badge>
+            {patientList.find((patient) => {
+              return patient.pkid === patientID;
+            })?.isValid ? (
+              <Badge color="green" ml="-2px">
+                Authorized
+              </Badge>
+            ) : (
+              <Badge color="red" ml="-2px">
+                Expired
+              </Badge>
+            )}
           </Flex>
         </Box>
       </Box>
@@ -742,7 +743,14 @@ const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
   patientName,
   expire,
 }) => {
-  // Format the card number for display
+  // (●) sliceNameIfNeed
+  const sliceNameIfNeed = (patientName: string) => {
+    if (patientName.length >= 23) {
+      const slicedName = patientName.slice(0, 23);
+      return `${slicedName}...`;
+    }
+    return patientName;
+  };
 
   return (
     <Card size="2" className="flex justify-center items-center h-full">
@@ -757,7 +765,7 @@ const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
         <div className="mt-4">
           <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
           <p className="text-xl font-mono mt-1">
-            {patientName && `${patientName} ✿`}
+            {patientName && `${sliceNameIfNeed(patientName)} ✿`}
           </p>
         </div>
 
@@ -775,17 +783,15 @@ const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
 // ★ Home ─────────────────────────────────────────────────────➤
 // WARN No type
 const Home = () => {
-  
-  const [activePatientID, setActivePatientID] = useState<number | null>(null);
+  // const [activePatientID, setActivePatientID] = useState<number | null>(null);
   const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
 
-  // const patientID = usePatientStore((state) => state.patientID);
-  // const setPatientID = usePatientStore((state) => state.setPatientID);
-
+  const patientID = usePatientStore((state) => state.patientID);
+  const setPatientID = usePatientStore((state) => state.setPatientID);
 
   useEffect(() => {
     // ✳ ✦── loadPatientsDetails ✉───➤ ❀
-    const loadPatientDetails = async (patientID: number | null) => {
+    const loadPatientDetails = async (patientID: number | undefined) => {
       try {
         if (patientID) {
           const url = `/patientsRUD/${patientID}/`;
@@ -801,8 +807,8 @@ const Home = () => {
       }
     };
 
-    loadPatientDetails(activePatientID);
-  }, [activePatientID]); //  ✳ ✦── loadPatientsDetails ✉───➤ ✿
+    loadPatientDetails(patientID);
+  }, [patientID]); //  ✳ ✦── loadPatientsDetails ✉───➤ ✿
 
   return (
     //──✦─DOM───➤
@@ -810,10 +816,7 @@ const Home = () => {
       <Box id="canvas" className="h-full grid grid-rows-3 grid-flow-col gap-4">
         {/* // <○> PatientListBox*/}
         <Box className="row-start-1 row-span-3 ">
-          <PatientListBox
-            activePatientID={activePatientID}
-            setActivePatientID={setActivePatientID}
-          />
+          <PatientListBox />
         </Box>
 
         {/* // <○> CreditCardDemo*/}
@@ -832,7 +835,7 @@ const Home = () => {
 
         {/* // <○> NoteBox*/}
         <Box className="row-start-3 row-span-1 ">
-          <NoteBox />
+          <NoteBox note = {patientDetails?.note}/>
         </Box>
       </Box>
     </>
