@@ -18,7 +18,6 @@ export const axiosDefault = axios.create({
 // cookies are automatically included in the headers without the need for withCredentials. 
 export const axiosPrivate = axios.create({
     baseURL: BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
     withCredentials: true
 });
 

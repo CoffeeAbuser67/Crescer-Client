@@ -25,7 +25,12 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import ReactPaginate from "react-paginate";
+import "yup-phone-lite";
 
+import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
+
+
+import { usePatientStore } from "../../store/patientStore";
 import { axiosPrivate, axiosDefault } from "../../utils/axios";
 import Loader from "../../components/Loader";
 import handleAxiosError from "../../utils/handleAxiosError";
@@ -35,6 +40,12 @@ import {
   PatientBriefData,
   PaginatedResponse,
 } from "../../types/patient";
+
+
+
+
+
+
 
 // [●] CreditCardDemoProps
 interface CreditCardDemoProps {
@@ -152,105 +163,17 @@ const DotsSVG = () => (
   </svg>
 ); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// (●) RemovePatient
-const RemovePatient = () => (
-  <>
-    <AlertDialog.Root>
-      <AlertDialog.Trigger>
-        <Button color="crimson" variant="ghost">
-          Remove
-        </Button>
-      </AlertDialog.Trigger>
-
-      <AlertDialog.Content maxWidth="500px">
-        <AlertDialog.Title>Delete Users</AlertDialog.Title>
-        <AlertDialog.Description size="2">
-          Are you sure you want to delete these users? This action is permanent
-          and cannot be undone.
-        </AlertDialog.Description>
-
-        <Inset side="x" my="5">
-          <Table.Root>
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeaderCell>Full name</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Email</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Group</Table.ColumnHeaderCell>
-              </Table.Row>
-            </Table.Header>
-
-            <Table.Body>
-              <Table.Row>
-                <Table.RowHeaderCell>Danilo Sousa</Table.RowHeaderCell>
-                <Table.Cell>danilo@example.com</Table.Cell>
-                <Table.Cell>Developer</Table.Cell>
-              </Table.Row>
-
-              <Table.Row>
-                <Table.RowHeaderCell>Zahra Ambessa</Table.RowHeaderCell>
-                <Table.Cell>zahra@example.com</Table.Cell>
-                <Table.Cell>Admin</Table.Cell>
-              </Table.Row>
-            </Table.Body>
-          </Table.Root>
-        </Inset>
-
-        <Flex gap="3" justify="end">
-          <AlertDialog.Cancel>
-            <Button variant="soft" color="gray">
-              Cancel
-            </Button>
-          </AlertDialog.Cancel>
-          <AlertDialog.Action>
-            <Button color="red">Delete users</Button>
-          </AlertDialog.Action>
-        </Flex>
-      </AlertDialog.Content>
-    </AlertDialog.Root>
-  </>
-); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-// (●) UpdatePatient
-const UpdatePatient = () => (
-  // _PIN_ Missing
-  <>Let go</>
-); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-// (✪) PopoverAction
-const PopoverAction = () => (
-  <Popover.Root>
-    <Popover.Trigger>
-      <IconButton className="py-0" variant="ghost">
-        <DotsSVG />
-      </IconButton>
-    </Popover.Trigger>
-
-    <Popover.Content
-      size="1"
-      maxWidth="300px"
-      className="flex flex-col items-center"
-    >
-      <Button color="orange" variant="ghost">
-        Edit profile
-      </Button>
-      <Separator orientation="horizontal" size="4" className=" my-4" />
-
-      {/* // (○) RemovePatient*/}
-      <RemovePatient />
-    </Popover.Content>
-  </Popover.Root>
-); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
 // <●> AddPatient
 const AddPatient = () => {
   const [open, setOpen] = useState(false);
+  const axios = useAxiosErrorInterceptor();
 
-  const brazilianPhoneNumberSchema = Yup.string()
-    // Brzillian phone Number validation
-    .matches(
-      /^\s*(\d{2}|\d{0})[-. ]?(\d{5}|\d{4})[-. ]?(\d{4})[-. ]?\s*$/,
-      "Invalid phone number format"
-    );
+  // const brazilianPhoneNumberSchema = Yup.string()
+  //   // Brzillian phone Number validation
+  //   .matches(
+  //     /^\s*(\d{2}|\d{0})[-. ]?(\d{5}|\d{4})[-. ]?(\d{4})[-. ]?\s*$/,
+  //     "Invalid phone number format"
+  //   );
 
   const validationSchema = Yup.object({
     patient_name: Yup.string().required("Patient name is required"),
@@ -258,7 +181,10 @@ const AddPatient = () => {
     birth_date: Yup.date().required("Birth date is required"),
     expiration_date: Yup.date().required("Expiration date is required"),
     email: Yup.string().email("Invalid email address"),
-    phone_number: brazilianPhoneNumberSchema,
+    phone_number: Yup.string()
+      .phone("BR", "Please enter a valid phone number")
+      .required("A phone number is required"),
+    // phone_number: brazilianPhoneNumberSchema,
   });
 
   const formik = useFormik({
@@ -279,7 +205,7 @@ const AddPatient = () => {
       // ✳ ↯ ── Add Patient ✉ ─── ↯
       try {
         const url = "/create_patient/";
-        const res = await axiosDefault.post(url, values, {
+        const res = await axios.post(url, values, {
           withCredentials: true,
         });
 
@@ -347,7 +273,6 @@ const AddPatient = () => {
                 )}
               </label>
 
-
               <label>
                 <Text as="div" size="2" mb="1" weight="bold">
                   Birth Date
@@ -359,14 +284,12 @@ const AddPatient = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                 />
-                {formik.touched.birth_date &&
-                  formik.errors.birth_date && (
-                    <Text size="2" color="red">
-                      {formik.errors.birth_date}
-                    </Text>
-                  )}
+                {formik.touched.birth_date && formik.errors.birth_date && (
+                  <Text size="2" color="red">
+                    {formik.errors.birth_date}
+                  </Text>
+                )}
               </label>
-
 
               <label>
                 <Text as="div" size="2" mb="1" weight="bold">
@@ -407,7 +330,7 @@ const AddPatient = () => {
 
               <label>
                 <Text as="div" size="2" mb="1" weight="bold">
-                  Phone
+                  DDD + Phone
                 </Text>
                 <TextField.Root
                   type="tel"
@@ -441,6 +364,69 @@ const AddPatient = () => {
     </>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// (●) RemovePatient
+const RemovePatient = () => (
+  <>
+    <AlertDialog.Root>
+      <AlertDialog.Trigger>
+        <Button color="crimson" variant="ghost">
+          Remove
+        </Button>
+      </AlertDialog.Trigger>
+
+      <AlertDialog.Content maxWidth="500px">
+        <AlertDialog.Title>Delete Patient Card</AlertDialog.Title>
+        <AlertDialog.Description size="2">
+          Are you sure you want to delete this card? This action is permanent
+          and cannot be undone.
+        </AlertDialog.Description>
+
+        <Flex gap="3" justify="end">
+          <AlertDialog.Cancel>
+            <Button variant="soft" color="gray">
+              Cancel
+            </Button>
+          </AlertDialog.Cancel>
+          <AlertDialog.Action>
+            <Button color="red">Delete</Button>
+          </AlertDialog.Action>
+        </Flex>
+      </AlertDialog.Content>
+    </AlertDialog.Root>
+  </>
+); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// (●) UpdatePatient
+const UpdatePatient = () => (
+  // _PIN_ Missing
+  <>Let go</>
+); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// (✪) PopoverAction
+const PopoverAction = () => (
+  <Popover.Root>
+    <Popover.Trigger>
+      <IconButton className="py-0" variant="ghost">
+        <DotsSVG />
+      </IconButton>
+    </Popover.Trigger>
+
+    <Popover.Content
+      size="1"
+      maxWidth="300px"
+      className="flex flex-col items-center"
+    >
+      <Button color="orange" variant="ghost">
+        Edit profile
+      </Button>
+      <Separator orientation="horizontal" size="4" className=" my-4" />
+
+      {/* // (○) RemovePatient*/}
+      <RemovePatient />
+    </Popover.Content>
+  </Popover.Root>
+); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // <●> PatientCard
 const PatientCard: React.FC<PatientCardProps> = ({
@@ -562,7 +548,7 @@ const PatientListBox: React.FC<LeftBoxProps> = ({
       <Flex gap="3" align="center" className="justify-between">
         <Heading color="orange">Patients </Heading>
 
-        {/* // ○ AddPatient*/}
+        {/* // <○> AddPatient*/}
         <ComponentProtector
           allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
         >
@@ -588,7 +574,7 @@ const PatientListBox: React.FC<LeftBoxProps> = ({
             PatientList.map((patient) => (
               <Table.Row key={patient.pkid}>
                 <Table.RowHeaderCell>
-                  {/* // (○) PatientCard*/}
+                  {/* // <○> PatientCard*/}
                   <PatientCard
                     patient={patient}
                     activePatientID={activePatientID}
@@ -789,8 +775,13 @@ const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
 // ★ Home ─────────────────────────────────────────────────────➤
 // WARN No type
 const Home = () => {
+  
   const [activePatientID, setActivePatientID] = useState<number | null>(null);
   const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
+
+  // const patientID = usePatientStore((state) => state.patientID);
+  // const setPatientID = usePatientStore((state) => state.setPatientID);
+
 
   useEffect(() => {
     // ✳ ✦── loadPatientsDetails ✉───➤ ❀

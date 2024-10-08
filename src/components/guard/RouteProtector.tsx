@@ -54,7 +54,7 @@ const RouteProtector: React.FC<PropType> = ({allowedRoles,  children }) => {
       setIsLoading(false)
     }
 
-  }, [ user, setUserRole]);
+  }, [user, setUserRole, axios]);
 
 
   return(
