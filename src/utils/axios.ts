@@ -9,7 +9,7 @@ import axios from 'axios';
 const BASE_URL = 'http://127.0.0.1:81/api/v1';
 
 export const axiosDefault = axios.create({
-    baseURL: BASE_URL
+    baseURL: BASE_URL,
 });
 
 

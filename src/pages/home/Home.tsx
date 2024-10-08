@@ -26,7 +26,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import ReactPaginate from "react-paginate";
 
-import { axiosPrivate } from "../../utils/axios";
+import { axiosPrivate, axiosDefault } from "../../utils/axios";
 import Loader from "../../components/Loader";
 import handleAxiosError from "../../utils/handleAxiosError";
 import ComponentProtector from "../../components/guard/ComponentProtector";
@@ -59,6 +59,11 @@ interface LeftBoxProps {
 // [●] RightBoxProps
 interface RightBoxProps {
   patientID: number | null;
+}
+
+// [●] DetailsBoxProps
+interface DetailsBoxProps {
+  patient: Patient | null;
 }
 
 const ROLES = {
@@ -215,7 +220,7 @@ const UpdatePatient = () => (
 const PopoverAction = () => (
   <Popover.Root>
     <Popover.Trigger>
-      <IconButton className="py-0 mb-3" variant="ghost">
+      <IconButton className="py-0" variant="ghost">
         <DotsSVG />
       </IconButton>
     </Popover.Trigger>
@@ -236,40 +241,6 @@ const PopoverAction = () => (
   </Popover.Root>
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ✪ CreditCardDemo
-const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
-  patientName,
-  parentName,
-  expire,
-}) => {
-  // Format the card number for display
-
-  return (
-    <div className="w-96 h-56 bg-gradient-to-r from-orange-500 to-orange-700 text-white rounded-xl shadow-lg p-6">
-      <div className="flex justify-between">
-        <h2 className="text-xl font-bold">Crescer Card</h2>
-
-        {/* //<○> CrescerFlowerSVG */}
-        <CrescerFlowerSVG />
-      </div>
-
-      <div className="mt-4">
-        <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
-        <p className="text-xl font-mono mt-1">
-          {patientName && `${patientName} ✿`}
-        </p>
-      </div>
-
-      <div className="mt-8 pb-0 flex justify-end">
-        <div>
-          <h4 className="text-sm uppercase tracking-wide">Expires</h4>
-          <p className="text-sm">{expire} </p>
-        </div>
-      </div>
-    </div>
-  );
-}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
 // <●> AddPatient
 const AddPatient = () => {
   const [open, setOpen] = useState(false);
@@ -284,6 +255,7 @@ const AddPatient = () => {
   const validationSchema = Yup.object({
     patient_name: Yup.string().required("Patient name is required"),
     parent_name: Yup.string().required("Parent name is required"),
+    birth_date: Yup.date().required("Birth date is required"),
     expiration_date: Yup.date().required("Expiration date is required"),
     email: Yup.string().email("Invalid email address"),
     phone_number: brazilianPhoneNumberSchema,
@@ -295,14 +267,28 @@ const AddPatient = () => {
       parent_name: "",
       phone_number: "",
       email: "",
+      birth_date: "",
       expiration_date: "",
     },
 
     validationSchema,
 
     onSubmit: async (values) => {
-      // _PIN_ API CALL HERE  ✉
-      console.log("Patient saved:", values); // [LOG] Patient saved ➤
+      console.log("Form values:", values); // [LOG] Patient saved ➤
+
+      // ✳ ↯ ── Add Patient ✉ ─── ↯
+      try {
+        const url = "/create_patient/";
+        const res = await axiosDefault.post(url, values, {
+          withCredentials: true,
+        });
+
+        console.log("response :", res); // [LOG] response status ➤
+      } catch (err) {
+        console.log("err", err); // [LOG] err  ➤
+        handleAxiosError(err);
+      }
+
       setOpen(false);
     },
   });
@@ -360,6 +346,27 @@ const AddPatient = () => {
                   </Text>
                 )}
               </label>
+
+
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Birth Date
+                </Text>
+                <TextField.Root
+                  type="date"
+                  name="birth_date"
+                  value={formik.values.birth_date}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.birth_date &&
+                  formik.errors.birth_date && (
+                    <Text size="2" color="red">
+                      {formik.errors.birth_date}
+                    </Text>
+                  )}
+              </label>
+
 
               <label>
                 <Text as="div" size="2" mb="1" weight="bold">
@@ -461,19 +468,21 @@ const PatientCard: React.FC<PatientCardProps> = ({
           }`
         )}
       >
-        <Box className="flex justify-stretch items-center">
-          <Avatar
-            size="3"
-            src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?&w=256&h=256&q=70&crop=focalpoint&fp-x=0.5&fp-y=0.3&fp-z=1&fit=crop"
-            fallback="T"
-          />
+        <Box className="flex justify-around items-center">
+          <div className="flex items-center w-6/12">
+            <Avatar
+              size="3"
+              src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?&w=256&h=256&q=70&crop=focalpoint&fp-x=0.5&fp-y=0.3&fp-z=1&fit=crop"
+              fallback="T"
+            />
 
-          <Text as="div" size="2" weight="bold" className=" flex-1 mb-2">
-            {`${patient.patient_name}`}
-          </Text>
+            <Text as="div" size="2" weight="bold" className=" ml-4">
+              {`${patient.patient_name}`}
+            </Text>
+          </div>
 
           <Text as="div" size="2" color="gray">
-            {`${patient.age}`}
+            {`Idade: ${patient.age}`}
           </Text>
 
           {/* // (○) Badge */}
@@ -513,7 +522,10 @@ const PatientListBox: React.FC<LeftBoxProps> = ({
         const url = "/patientsList/";
         console.log("Active Page : ", page); // [LOG]
 
-        const response = await axiosPrivate.get(url, { params: { page } });
+        const response = await axiosDefault.get(url, {
+          params: { page },
+          withCredentials: true,
+        });
 
         setPatientList(response?.data?.results);
 
@@ -546,56 +558,48 @@ const PatientListBox: React.FC<LeftBoxProps> = ({
 
   // ── DOM
   return (
-    <Card size="4" className=" flex flex-col justify-stretch h-full">
-      <ScrollArea
-        type="auto"
-        scrollbars="vertical"
-        radius="full"
-        style={{ height: 750 }}
-        className="pr-10"
-      >
-        <Flex gap="3" align="center" className="justify-between">
-          <Heading color="orange">Patients </Heading>
+    <Card size="4" className=" flex flex-col flex-1 justify-stretch h-full">
+      <Flex gap="3" align="center" className="justify-between">
+        <Heading color="orange">Patients </Heading>
 
-          {/* // ○ AddPatient*/}
-          <ComponentProtector
-            allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
-          >
-            <AddPatient />
-          </ComponentProtector>
-        </Flex>
+        {/* // ○ AddPatient*/}
+        <ComponentProtector
+          allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
+        >
+          <AddPatient />
+        </ComponentProtector>
+      </Flex>
 
-        <Table.Root>
-          <Table.Header>
+      <Table.Root>
+        <Table.Header>
+          <Table.Row>
+            <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {loading ? (
             <Table.Row>
-              <Table.ColumnHeaderCell>Patient Card</Table.ColumnHeaderCell>
+              <Table.RowHeaderCell>
+                <Loader />
+              </Table.RowHeaderCell>
             </Table.Row>
-          </Table.Header>
-
-          <Table.Body>
-            {loading ? (
-              <Table.Row>
+          ) : (
+            PatientList.map((patient) => (
+              <Table.Row key={patient.pkid}>
                 <Table.RowHeaderCell>
-                  <Loader />
+                  {/* // (○) PatientCard*/}
+                  <PatientCard
+                    patient={patient}
+                    activePatientID={activePatientID}
+                    setActivePatientID={setActivePatientID}
+                  />
                 </Table.RowHeaderCell>
               </Table.Row>
-            ) : (
-              PatientList.map((patient) => (
-                <Table.Row key={patient.pkid}>
-                  <Table.RowHeaderCell>
-                    {/* // (○) PatientCard*/}
-                    <PatientCard
-                      patient={patient}
-                      activePatientID={activePatientID}
-                      setActivePatientID={setActivePatientID}
-                    />
-                  </Table.RowHeaderCell>
-                </Table.Row>
-              ))
-            )}
-          </Table.Body>
-        </Table.Root>
-      </ScrollArea>
+            ))
+          )}
+        </Table.Body>
+      </Table.Root>
 
       {/*//  ○ ReactPaginate */}
       <ReactPaginate
@@ -626,54 +630,63 @@ const PatientListBox: React.FC<LeftBoxProps> = ({
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ● NoteBox
+// ✪ NoteBox
 const NoteBox = () => {
   return (
-    <Card size="2" className="h-full">
-      <Box position="relative" pt="1">
-        <Box position="absolute" top="0" bottom="0" width="1px" ml="-0.5px">
-          <Separator
-            size="4"
-            orientation="vertical"
-            mt="2"
-            style={{
-              background:
-                "linear-gradient(to bottom, var(--orange-6) 90%, transparent)",
-            }}
-          />
-        </Box>
+    <Card size="2" className="h-full p-8">
+      <ScrollArea
+        type="auto"
+        scrollbars="vertical"
+        radius="full"
+        style={{ height: 320 }}
+        className="pr-10"
+      >
+        <Box position="relative" pt="1">
+          <Box position="absolute" top="0" bottom="0" width="1px" ml="-0.5px">
+            <Separator
+              size="4"
+              orientation="vertical"
+              mt="2"
+              style={{
+                background:
+                  "linear-gradient(to bottom, var(--orange-6) 90%, transparent)",
+              }}
+            />
+          </Box>
 
-        <Box pl="6">
-          <Flex direction="column" gap="4">
-            <Box>
-              <Text as="div" size="1" color="gray" mb="1">
-                Note:
-              </Text>
-              <Text as="p" size="2">
-                ...
-              </Text>
-            </Box>
-          </Flex>
+          <Box pl="6">
+            <Flex direction="column" gap="4">
+              <Box>
+                <Text as="div" size="1" color="gray" mb="1">
+                  Note:
+                </Text>
+                <Text as="p" size="2">
+                  ...
+                </Text>
+              </Box>
+            </Flex>
+          </Box>
         </Box>
-      </Box>
+      </ScrollArea>
     </Card>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ● DetailsBox
-const DetailsBox = () => {
+// ✪ DetailsBox
+const DetailsBox: React.FC<DetailsBoxProps> = ({ patient }) => {
   return (
-    <Card size="2">
-      <Heading as="h3" size="4" mb="4" color="orange">
-        Patient Name Here
+    <Card size="2" className="h-full p-8">
+      <Heading as="h3" size="4" mb="6" color="orange">
+        {patient?.patient_name}
       </Heading>
-      <Flex gap="4" direction="column" pr="6">
+
+      <Box className="grid grid-rows-3 grid-flow-col gap-4">
         <Box>
           <Text as="div" weight="bold" size="2" mb="1">
             Nome do responsável:
           </Text>
           <Text as="p" color="gray" size="2">
-            Package picked up from the warehouse in Phoenix, TX
+            {patient?.parent_name}
           </Text>
         </Box>
 
@@ -682,7 +695,7 @@ const DetailsBox = () => {
             Telefone:
           </Text>
           <Text as="p" color="gray" size="2">
-            Package picked up from the warehouse in Phoenix, TX
+            {patient?.phone_number}
           </Text>
         </Box>
 
@@ -691,53 +704,97 @@ const DetailsBox = () => {
             Email:
           </Text>
           <Text as="div" size="2" color="gray">
-            512 Oakwood Avenue, Unit 201, Greenville, SC 67890
+            {patient?.email}
           </Text>
         </Box>
 
-        <Grid columns="3">
-          <Box>
-            <Text as="div" weight="bold" size="2" mb="1">
-              Status
-            </Text>
-            <Flex height="24px" align="center">
-              <Badge color="green" ml="-2px">
-                On time
-              </Badge>
-            </Flex>
-          </Box>
-          <Box>
-            <Text as="div" weight="bold" size="2" mb="1">
-              Nascimento:
-            </Text>
-            <Text as="div" color="gray" size="2">
-              12/07/1992
-            </Text>
-          </Box>
+        <Box>
+          <Text as="div" weight="bold" size="2" mb="1">
+            Criado em:
+          </Text>
+          <Text as="div" color="gray" size="2">
+            {patient?.created_at}
+          </Text>
+        </Box>
 
-          <Box>
-            <Text as="div" weight="bold" size="2" mb="1">
-              Vencimento
-            </Text>
-            <Text as="div" color="gray" size="2">
-              33/33/2000
-            </Text>
-          </Box>
-        </Grid>
-      </Flex>
+        <Box>
+          <Text as="div" weight="bold" size="2" mb="1">
+            Nascimento:
+          </Text>
+          <Text as="div" color="gray" size="2">
+            {patient?.birth_date}
+          </Text>
+        </Box>
+
+        <Box>
+          <Text as="div" weight="bold" size="2" mb="1">
+            Vencimento:
+          </Text>
+          <Text as="div" color="gray" size="2">
+            {patient?.expiration_date}
+          </Text>
+        </Box>
+
+        <Box>
+          <Text as="div" weight="bold" size="2" mb="1">
+            Status
+          </Text>
+
+          <Flex height="24px" align="center">
+            <Badge color="green" ml="-2px">
+              On time
+            </Badge>
+          </Flex>
+        </Box>
+      </Box>
     </Card>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// <✪> CreditCardWrapper
-const CreditCardWrapper: React.FC<RightBoxProps> = ({ patientID }) => {
-  const [loadingR, setLoadingR] = useState<boolean>(false);
+// ● CreditCardDemo
+const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
+  patientName,
+  expire,
+}) => {
+  // Format the card number for display
+
+  return (
+    <Card size="2" className="flex justify-center items-center h-full">
+      <div className="w-96 h-56 bg-gradient-to-r from-orange-500 to-orange-700 text-white rounded-xl shadow-lg p-6">
+        <div className="flex justify-between">
+          <h2 className="text-xl font-bold">Crescer Card</h2>
+
+          {/* //<○> CrescerFlowerSVG */}
+          <CrescerFlowerSVG />
+        </div>
+
+        <div className="mt-4">
+          <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
+          <p className="text-xl font-mono mt-1">
+            {patientName && `${patientName} ✿`}
+          </p>
+        </div>
+
+        <div className="mt-8 pb-0 flex justify-end">
+          <div>
+            <h4 className="text-sm uppercase tracking-wide">Expires</h4>
+            <p className="text-sm">{expire} </p>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ★ Home ─────────────────────────────────────────────────────➤
+// WARN No type
+const Home = () => {
+  const [activePatientID, setActivePatientID] = useState<number | null>(null);
   const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
 
   useEffect(() => {
     // ✳ ✦── loadPatientsDetails ✉───➤ ❀
     const loadPatientDetails = async (patientID: number | null) => {
-      setLoadingR(true);
       try {
         if (patientID) {
           const url = `/patientsRUD/${patientID}/`;
@@ -751,49 +808,35 @@ const CreditCardWrapper: React.FC<RightBoxProps> = ({ patientID }) => {
           handleAxiosError(err);
         }
       }
-      setLoadingR(false);
     };
 
-    loadPatientDetails(patientID);
-  }, [patientID]); //  ✳ ✦── loadPatientsDetails ✉───➤ ✿
-
-  return (
-    <Card size="2" className="flex justify-center items-center h-full">
-      {/* // ○ CreditCardDemo*/}
-      <CreditCardDemo
-        patientName={patientDetails?.patient_name}
-        parentName={patientDetails?.parent_name}
-        expire={patientDetails?.expiration_date}
-      />
-    </Card>
-  );
-};
-
-// ★ Home ─────────────────────────────────────────────────────➤
-// WARN No type
-const Home = () => {
-  const [activePatientID, setActivePatientID] = useState<number | null>(null);
+    loadPatientDetails(activePatientID);
+  }, [activePatientID]); //  ✳ ✦── loadPatientsDetails ✉───➤ ✿
 
   return (
     //──✦─DOM───➤
     <>
       <Box id="canvas" className="h-full grid grid-rows-3 grid-flow-col gap-4">
+        {/* // <○> PatientListBox*/}
         <Box className="row-start-1 row-span-3 ">
-          {/* // <○> PatientListBox*/}
           <PatientListBox
             activePatientID={activePatientID}
             setActivePatientID={setActivePatientID}
           />
         </Box>
 
-        {/* // <○> CreditCardWrapper*/}
+        {/* // <○> CreditCardDemo*/}
         <Box className="row-start-1 row-span-1 ">
-          <CreditCardWrapper patientID={activePatientID} />
+          <CreditCardDemo
+            patientName={patientDetails?.patient_name}
+            parentName={patientDetails?.parent_name}
+            expire={patientDetails?.expiration_date}
+          />
         </Box>
 
         {/* // <○> DetailsBox*/}
         <Box className="row-start-2 row-span-1 ">
-          <DetailsBox />
+          <DetailsBox patient={patientDetails} />
         </Box>
 
         {/* // <○> NoteBox*/}

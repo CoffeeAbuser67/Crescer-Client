@@ -24,7 +24,7 @@ const handleAxiosError = (error: unknown) => {
       switch (error.response.status) {
         
         case 400:
-          toast.error("Invalid Credentials.");
+          toast.error("Invalid Request.");
           break;
         
         case 401:
