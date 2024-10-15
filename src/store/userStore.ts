@@ -28,7 +28,7 @@ interface UserStore {
   setUserList: (userList: User[]) => void;
   setActiveUser: (userData: User) => void;
   setUserRole: (role: number) => void;
-  removeActiveUser: () => void;
+  logoutActiveUser: () => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -49,7 +49,7 @@ export const useUserStore = create<UserStore>((set) => ({
     set({ user_role: role });
   },
 
-  removeActiveUser: () => {
+  logoutActiveUser: () => {
     set({ user: null, isLoggedIn: false });
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("user");

@@ -47,11 +47,11 @@ const DeleteSVG = () => (
     xmlns="http://www.w3.org/2000/svg"
     width={18}
     height={18}
-    fill="#f6fef4b0"
+    fill="#990000"
     viewBox="0 0 24 24"
   >
     <path
-      stroke="#f6fef4b0"
+      stroke="#990000"
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
@@ -268,7 +268,13 @@ const AddUser = () => {
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // <●> RemoveUser
-const RemoveUser = ({ user_id, user_name }: { user_id: number | undefined,  user_name: string| undefined }) => {
+const RemoveUser = ({
+  user_id,
+  user_name,
+}: {
+  user_id: number | undefined;
+  user_name: string | undefined;
+}) => {
   const axios = useAxiosErrorInterceptor();
   const { loadUsers } = useUserService();
 
@@ -278,7 +284,7 @@ const RemoveUser = ({ user_id, user_name }: { user_id: number | undefined,  user
       console.log("id is :", user_id); // [LOG]
       const url = `/auth/deleteUser/${user_id}/`;
       const res = await axios.delete(url);
-      console.log("response :", res); // [LOG]  
+      console.log("response :", res); // [LOG]
       await loadUsers();
     } catch (err) {
       console.log("err", err); // [LOG]
@@ -332,11 +338,14 @@ const UserTable = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { loadUsers } = useUserService();
 
+  const active_user = useUserStore((state) => state.user);
   const userList = useUserStore((state) => state.userList);
 
   useEffect(() => {
     // _PIN_ ✦── reloadUsers ✉ ───➤
     const reloadUsers = async () => {
+
+      console.log("active_user id", active_user?.pk) //[LOG]
       setLoading(true);
       await loadUsers();
       setLoading(false);
@@ -378,11 +387,16 @@ const UserTable = () => {
                 <Table.Row key={i}>
                   <Table.RowHeaderCell>
                     {/* // <○> UserIconSVG */}
-                    {user.user_group == ROLES["Admin"] ? (
+
+                    {user.pkid == active_user?.pk ? (
+                      <UserIconSVG u_color="green" />
+                    ) : user.user_group == ROLES["Admin"] ? (
                       <UserIconSVG u_color="#ffa057" />
                     ) : (
                       <UserIconSVG u_color="gray" />
                     )}
+
+
                   </Table.RowHeaderCell>
 
                   <Table.Cell>
@@ -410,7 +424,10 @@ const UserTable = () => {
                   <Table.Cell>
                     <Flex flexGrow="1" justify="end" align="center">
                       {/* // <○> RemoveUser */}
-                      <RemoveUser user_id={user.pkid} user_name = {user.first_name} />
+                      <RemoveUser
+                        user_id={user.pkid}
+                        user_name={user.first_name}
+                      />
                     </Flex>
                   </Table.Cell>
                 </Table.Row>
@@ -423,10 +440,9 @@ const UserTable = () => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
 // ★ Temp ✦───────────────────────────────────────────────────➤
 const Temp = () => {
-  // ── ✦──DOM──➤
+  // ── ✦─DOM─➤
   return (
     <div
       id="canvas"

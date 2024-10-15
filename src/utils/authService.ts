@@ -12,7 +12,7 @@ const useAuthService = () => {
 
   const navigate = useNavigate()
   const setActiveUser = useUserStore((state) => state.setActiveUser);
-  const removeActiveUser = useUserStore((state) => state.removeActiveUser);
+  const logoutActiveUser = useUserStore((state) => state.logoutActiveUser);
   // const user = useUserStore((state) => state.user);
 
 
@@ -52,7 +52,7 @@ const useAuthService = () => {
   const logout = async () => {
     try {
 
-      removeActiveUser();
+      logoutActiveUser();
       await axiosDefault.post(
         "/auth/logout/",
         {},
