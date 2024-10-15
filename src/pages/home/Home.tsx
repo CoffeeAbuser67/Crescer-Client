@@ -67,6 +67,7 @@ interface DetailsBoxProps {
   patient: Patient | null;
 }
 
+// [●] ROLES
 const ROLES = {
   User: 3,
   Staff: 2,
@@ -191,9 +192,8 @@ const AddPatient = () => {
     validationSchema,
 
     onSubmit: async (values) => {
+      // _PIN_ ↯ ── Add Patient ✉ ─── ↯
       console.log("Form values:", values); // [LOG] Patient saved ➤
-
-      // ✳ ↯ ── Add Patient ✉ ─── ↯
       try {
         const url = "/create_patient/";
         const res = await axios.post(url, values);
@@ -213,7 +213,7 @@ const AddPatient = () => {
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger>
           {/* //<○>  AddButtonSVG */}
-          <IconButton color="orange">
+          <IconButton color="orange" className="cursor-pointer">
             <AddButtonSVG />
           </IconButton>
         </Dialog.Trigger>
@@ -360,15 +360,16 @@ const RemovePatient = () => {
   const patientID = usePatientStore((state) => state.patientID);
   const { loadPatients } = usePatientService();
 
+  // _PIN_ ✦── peformRemove ✉ ───➤
   const peformRemove = async () => {
     try {
-      console.log("id is :", patientID); // [LOG]  ➤
+      console.log("id is :", patientID); // [LOG]  
       const url = `/patientsRUD/${patientID}/`;
       const res = await axios.delete(url);
-      console.log("response :", res); // [LOG]  ➤
+      console.log("response :", res); // [LOG]  
       await loadPatients();
     } catch (err) {
-      console.log("err", err); // [LOG]   ➤
+      console.log("err", err); // [LOG]  
       handleAxiosError(err);
     }
   };
@@ -516,7 +517,7 @@ const PatientListBox = () => {
   const { loadPatients } = usePatientService();
 
   useEffect(() => {
-    // ✳ ✦── reloadPatients ✉───➤ ❀
+    // _PIN_ ✦── reloadPatients ✉ ───➤ ❀
     const reloadPatients = async () => {
       setLoading(true);
       await loadPatients();
@@ -525,7 +526,7 @@ const PatientListBox = () => {
     reloadPatients();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]); //  ✳ ✦── reloadPatients ✉───➤ ✿
+  }, [page]);
 
   // (●) handlePageChange
   const handlePageChange = (event) => {
@@ -603,11 +604,8 @@ const PatientListBox = () => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-
-
 // <✪> NoteBox
-const NoteBox = ({note}: {note: string | undefined} ) => {
-  
+const NoteBox = ({ note }: { note: string | undefined }) => {
   return (
     <Card size="2" className="h-full p-8">
       <ScrollArea
@@ -787,10 +785,9 @@ const Home = () => {
   const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
 
   const patientID = usePatientStore((state) => state.patientID);
-  const setPatientID = usePatientStore((state) => state.setPatientID);
 
   useEffect(() => {
-    // ✳ ✦── loadPatientsDetails ✉───➤ ❀
+    // _PIN_ ✦── loadPatientDetails ✉ ───➤ ❀
     const loadPatientDetails = async (patientID: number | undefined) => {
       try {
         if (patientID) {
@@ -808,19 +805,22 @@ const Home = () => {
     };
 
     loadPatientDetails(patientID);
-  }, [patientID]); //  ✳ ✦── loadPatientsDetails ✉───➤ ✿
+  }, [patientID]);
 
   return (
     //──✦─DOM───➤
     <>
-      <Box id="canvas" className="h-full grid grid-rows-3 grid-flow-col gap-4">
+      <Box
+        id="canvas"
+        className="h-full grid grid-rows-3 grid-flow-col gap-4 justify-center"
+      >
         {/* // <○> PatientListBox*/}
         <Box className="row-start-1 row-span-3 ">
           <PatientListBox />
         </Box>
 
         {/* // <○> CreditCardDemo*/}
-        <Box className="row-start-1 row-span-1 ">
+        <Box className="row-start-1 row-span-1 w-[750px]">
           <CreditCardDemo
             patientName={patientDetails?.patient_name}
             parentName={patientDetails?.parent_name}
@@ -829,13 +829,13 @@ const Home = () => {
         </Box>
 
         {/* // <○> DetailsBox*/}
-        <Box className="row-start-2 row-span-1 ">
+        <Box className="row-start-2 row-span-1 w-[750px]">
           <DetailsBox patient={patientDetails} />
         </Box>
 
         {/* // <○> NoteBox*/}
-        <Box className="row-start-3 row-span-1 ">
-          <NoteBox note = {patientDetails?.note}/>
+        <Box className="row-start-3 row-span-1 w-[750px]">
+          <NoteBox note={patientDetails?.note} />
         </Box>
       </Box>
     </>

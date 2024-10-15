@@ -18,7 +18,7 @@ type PatientBriefData = {
     setPatientID: (id: number | undefined) => void;
     
     patientList: PatientBriefData[]
-    setPatientList: (patient : PatientBriefData[]) => void;
+    setPatientList: (patientList : PatientBriefData[]) => void;
 
     page: number;
     setPage: (page : number) => void;

@@ -1,4 +1,4 @@
-import ReactPaginate from "react-paginate";
+// HERE import
 import { useEffect, useState } from "react";
 
 import {
@@ -7,223 +7,435 @@ import {
   Card,
   Flex,
   Grid,
+  DropdownMenu,
+  IconButton,
+  Button,
   Heading,
-  Link,
+  Table,
+  Dialog,
   Separator,
   Text,
   TextField,
+  Switch,
+  AlertDialog,
+  CheckboxGroup,
 } from "@radix-ui/themes";
 
-// [●] items
-const items = [...Array(33).keys()];
+import "yup-phone-lite";
 
-// [✪]  Items
-function Items({ currentItems }) {
+import { useFormik } from "formik";
+
+import handleAxiosError from "../utils/handleAxiosError";
+import useAxiosErrorInterceptor from "../hooks/useAxiosErrorInterceptor";
+
+import * as Yup from "yup";
+import useUserService from "../utils/userService";
+import { useUserStore } from "../store/userStore";
+import Loader from "../components/Loader";
+
+// [●] ROLES
+const ROLES = {
+  User: 3,
+  Staff: 2,
+  Admin: 1,
+  AnyRole: 0,
+};
+
+// <●> DeleteSVG
+const DeleteSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={18}
+    height={18}
+    fill="#f6fef4b0"
+    viewBox="0 0 24 24"
+  >
+    <path
+      stroke="#f6fef4b0"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 7h16M6 10l1.701 9.358A2 2 0 0 0 9.67 21h4.662a2 2 0 0 0 1.968-1.642L18 10M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2H9V5Z"
+    />
+  </svg>
+);
+
+// <●> AddButtonSVG
+const AddButtonSVG = () => (
+  <>
+    <svg
+      width="24px"
+      height="24px"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        id="Vector"
+        d="M6 12H12M12 12H18M12 12V18M12 12V6"
+        stroke="#eceeec"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </>
+);
+
+// <●> UserIconSVG
+const UserIconSVG: React.FC<{ u_color: string }> = ({ u_color }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={24}
+    height={24}
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <path
+      fill={u_color}
+      fillRule="evenodd"
+      d="M6 8a6 6 0 1 1 12 0A6 6 0 0 1 6 8ZM5.43 16.902C7.057 16.223 9.224 16 12 16c2.771 0 4.935.22 6.559.898 1.742.727 2.812 1.963 3.382 3.76A1.03 1.03 0 0 1 20.959 22H3.035c-.69 0-1.188-.67-.978-1.335.568-1.797 1.634-3.033 3.374-3.762Z"
+      clipRule="evenodd"
+    />
+  </svg>
+); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// <●> AddUser
+const AddUser = () => {
+  const [open, setOpen] = useState(false);
+
+  // const axios = useAxiosErrorInterceptor();
+  // const { loadPatients } = usePatientService();
+
+  const validationSchema = Yup.object({
+    first_name: Yup.string().required("Patient name is required"),
+    last_name: Yup.string().required("Parent name is required"),
+    email: Yup.string().email("Invalid email address"),
+    password: Yup.string().required("Password is required"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      password: "",
+      isAdmin: false, // Add checkbox initial value
+    },
+
+    validationSchema,
+
+    onSubmit: async (values) => {
+      // _PIN_ ✦── Add User ✉ ──➤
+      console.log("Form values:", values); // [LOG] Patient saved
+
+      //   const url = "/create_patient/";
+      //   const res = await axios.post(url, values);
+      //   console.log("response status:", res.status); // [LOG] response status
+      //   await loadPatients();
+      // } catch (err) {
+      //   console.log("err", err); // [LOG] err
+      //   handleAxiosError(err);
+      // }
+      setOpen(false);
+    },
+  });
+
   return (
-    <div className="items">
-      {currentItems &&
-        currentItems.map((item) => (
-          <div>
-            <h3>Item #{item}</h3>
-          </div>
-        ))}
-    </div>
+    <>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Trigger>
+          {/* //<○>  AddButtonSVG */}
+          <IconButton color="orange" className="cursor-pointer">
+            <AddButtonSVG />
+          </IconButton>
+        </Dialog.Trigger>
+
+        <Dialog.Content maxWidth="450px">
+          <form onSubmit={formik.handleSubmit}>
+            <Dialog.Title>Add User</Dialog.Title>
+
+            <Flex align="center" justify={"between"} gap="2" my="5">
+              <Dialog.Description size="2">
+                Create a new User.
+              </Dialog.Description>
+
+              <Flex gap="4">
+                <Text size="2" weight="bold">
+                  Admin
+                </Text>
+                <Switch
+                  checked={formik.values.isAdmin}
+                  onCheckedChange={(checked) =>
+                    formik.setFieldValue("isAdmin", checked)
+                  }
+                  name="isAdmin"
+                  size="2"
+                />
+              </Flex>
+            </Flex>
+
+            <Flex direction="column" gap="3">
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  First Name
+                </Text>
+                <TextField.Root
+                  type="text"
+                  name="first_name"
+                  value={formik.values.first_name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.first_name && formik.errors.first_name && (
+                  <Text size="2" color="red">
+                    {formik.errors.first_name}
+                  </Text>
+                )}
+              </label>
+
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Last Name
+                </Text>
+                <TextField.Root
+                  type="text"
+                  name="last_name"
+                  value={formik.values.last_name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.last_name && formik.errors.last_name && (
+                  <Text size="2" color="red">
+                    {formik.errors.last_name}
+                  </Text>
+                )}
+              </label>
+
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Email
+                </Text>
+                <TextField.Root
+                  type="email"
+                  name="email"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <Text size="2" color="red">
+                    {formik.errors.email}
+                  </Text>
+                )}
+              </label>
+
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Password
+                </Text>
+                <TextField.Root
+                  type="password"
+                  name="password"
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+
+                {formik.touched.password && formik.errors.password && (
+                  <Text size="2" color="red">
+                    {formik.errors.password}
+                  </Text>
+                )}
+              </label>
+
+              {/* -------------------------------------------- */}
+            </Flex>
+
+            <Flex gap="3" mt="4" justify="end">
+              <Dialog.Close>
+                <Button variant="soft" color="gray">
+                  Cancel
+                </Button>
+              </Dialog.Close>
+
+              <Button type="submit">Save</Button>
+            </Flex>
+          </form>
+        </Dialog.Content>
+      </Dialog.Root>
+    </>
   );
-}
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ✪ PaginatedItems ✦─────➤
-function PaginatedItems({ itemsPerPage }) {
-  // We start with an empty list of items.
-  const [currentItems, setCurrentItems] = useState(null);
+// <●> RemoveUser
+const RemoveUser = ({ user_id, user_name }: { user_id: number | undefined,  user_name: string| undefined }) => {
+  const axios = useAxiosErrorInterceptor();
+  const { loadUsers } = useUserService();
 
-  const [pageCount, setPageCount] = useState(0);
-
-  // Here we use item offsets; we could also use page offsets
-  // following the API or data you're working with.
-  const [itemOffset, setItemOffset] = useState(0);
-
-  // NOTE He use the itemOffset and setItemOffset to setup the current the items of a respective page.
-  // I don't need that since my api Already bring the itens of each page.
-  useEffect(() => {
-    // Fetch items from another resources.
-    const endOffset = itemOffset + itemsPerPage;
-    console.log(`Loading items from ${itemOffset} to ${endOffset}`);
-    setCurrentItems(items.slice(itemOffset, endOffset));
-    setPageCount(Math.ceil(items.length / itemsPerPage));
-  }, [itemOffset, itemsPerPage]);
-
-  // Invoke when user click to request another page.
-  const handlePageClick = (event) => {
-    const newOffset = (event.selected * itemsPerPage) % items.length;
-    console.log(
-      `User requested page number ${event.selected}, which is offset ${newOffset}`
-    );
-    setItemOffset(newOffset);
+  // _PIN_ ✦── peformRemove ✉ ───➤
+  const peformRemove = async () => {
+    try {
+      console.log("id is :", user_id); // [LOG]
+      const url = `/auth/deleteUser/${user_id}/`;
+      const res = await axios.delete(url);
+      console.log("response :", res); // [LOG]  
+      await loadUsers();
+    } catch (err) {
+      console.log("err", err); // [LOG]
+      handleAxiosError(err);
+    }
   };
 
   return (
     <>
-      <Items currentItems={currentItems} />
-      <ReactPaginate
-        className="flex justify-center items-center"
-        nextLabel=" >"
-        onPageChange={handlePageClick}
-        pageRangeDisplayed={3}
-        marginPagesDisplayed={1}
-        pageCount={pageCount}
-        previousLabel="< "
-        pageClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 hover:opacity-100 mx-0.5"
-        pageLinkClassName="inline-flex w-full h-full justify-center items-center"
-        previousClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 mx-0.5"
-        previousLinkClassName="inline-flex w-full h-full justify-center items-center"
-        nextClassName="inline-flex items-center justify-center w-7 h-7 text-sm border rounded shadow-md bg-neutral-900 border-neutral-800 opacity-70 mx-0.5"
-        nextLinkClassName="inline-flex w-full h-full justify-center items-center"
-        disabledClassName="opacity-20 cursor-default"
-        disabledLinkClassName="opacity-20 cursor-default"
-        breakLabel="..."
-        breakClassName="mx-0.5"
-        breakLinkClassName="page-link"
-        containerClassName="pagination"
-        activeClassName="font-bold border rounded shadow-md bg-neutral-900 text-orange-600 border-orange-600"
-        renderOnZeroPageCount={null}
-        disableInitialCallback={true}
-      />
+      <AlertDialog.Root>
+        <AlertDialog.Trigger>
+          <IconButton
+            color="crimson"
+            variant="ghost"
+            size="1"
+            className="cursor-pointer"
+          >
+            {/* // <○> DeleteSVG */}
+            <DeleteSVG />
+          </IconButton>
+        </AlertDialog.Trigger>
+
+        <AlertDialog.Content maxWidth="500px">
+          <AlertDialog.Title>Delete {user_name}</AlertDialog.Title>
+          <AlertDialog.Description size="2">
+            Are you sure you want to delete this user? This action is permanent
+            and cannot be undone.
+          </AlertDialog.Description>
+
+          <Flex gap="3" justify="end">
+            <AlertDialog.Cancel>
+              <Button variant="soft" color="gray">
+                Cancel
+              </Button>
+            </AlertDialog.Cancel>
+
+            <AlertDialog.Action>
+              <Button onClick={peformRemove} color="red">
+                Delete
+              </Button>
+            </AlertDialog.Action>
+          </Flex>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
     </>
   );
-}
+}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ● Patient2
-type Patient2 = {
-  patient_name: string;
-  parent_name: string;
-  phone_number?: string; // optional
-  email?: string; // optional
-  note?: string; // optional
-  country: string; // should use ISO 3166-1 alpha-2 code
-  city: string;
-  birth_date: string; // formatted as YYYY-MM-DD
-  expiration_date: string; // formatted as YYYY-MM-DD
-};
+// <✪> UserTable
+const UserTable = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const { loadUsers } = useUserService();
 
-// ● PatientDetails
+  const userList = useUserStore((state) => state.userList);
 
-const PatientDetails = () => {
-  // const PatientDetails: React.FC<Patient2> = (Patient) => {
+  useEffect(() => {
+    // _PIN_ ✦── reloadUsers ✉ ───➤
+    const reloadUsers = async () => {
+      setLoading(true);
+      await loadUsers();
+      setLoading(false);
+    };
+
+    reloadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── DOM
   return (
-    <Card size="2">
-      <Heading as="h3" size="4" mb="4" color="orange">
-        Nome do paciente
-      </Heading>
+    <>
+      <Card size="4">
+        <Box className="flex flex-col justify-center">
+          <Box className="flex justify-between items-center">
+            <Heading as="h3" size="6" trim="start" mb="2">
+              Users
+            </Heading>
 
-      {/* <TextField.Root mb="5" variant="soft" placeholder="Enter package number">
-        <TextField.Slot>🦀</TextField.Slot>
-      </TextField.Root> */}
-
-      <Grid columns="2">
-        <Flex gap="4" direction="column" pr="6">
-          <Box>
-            
-            <Text as="div" weight="bold" size="2" mb="1">
-              Nome do responsável:
-            </Text>
-            <Text as="p" color="gray" size="2">
-              Package picked up from the warehouse in Phoenix, TX
-            </Text>
+            {/* //<○> AddUser */}
+            <AddUser />
           </Box>
 
-          <Box>
-            <Text as="div" weight="bold" size="2" mb="1">
-              Telefone:
-            </Text>
-            <Text as="p" color="gray" size="2">
-              Package picked up from the warehouse in Phoenix, TX
-            </Text>
-          </Box>
-
-          <Box>
-            <Text as="div" weight="bold" size="2" mb="1">
-              Email:
-            </Text>
-            <Text as="div" size="2" color="gray">
-              512 Oakwood Avenue, Unit 201, Greenville, SC 67890
-            </Text>
-          </Box>
-
-          <Grid columns="3">
-            <Box>
-              <Text as="div" weight="bold" size="2" mb="1">
-                Status
-              </Text>
-              <Flex height="24px" align="center">
-                <Badge color="green" ml="-2px">
-                  On time
-                </Badge>
-              </Flex>
-            </Box>
-            <Box>
-              <Text as="div" weight="bold" size="2" mb="1">
-                Nascimento:
-              </Text>
-              <Text as="div" color="gray" size="2">
-                12/07/1992
-              </Text>
-            </Box>
-
-            <Box>
-              <Text as="div" weight="bold" size="2" mb="1">
-                Vencimento
-              </Text>
-              <Text as="div" color="gray" size="2">
-                33/33/2000
-              </Text>
-            </Box>
-          </Grid>
-        </Flex>
-
-        <Box position="relative" pt="1">
-          <Box position="absolute" top="0" bottom="0" width="1px" ml="-0.5px">
-            <Separator
-              size="4"
-              orientation="vertical"
-              mt="2"
-              style={{
-                background:
-                  "linear-gradient(to bottom, var(--orange-6) 90%, transparent)",
-              }}
-            />
-          </Box>
-
-          <Box pl="6">
-            <Flex direction="column" gap="4">
-              <Box>
-              <Text as="div" size="1" color="gray" mb="1">
-                  Note:
-                </Text>
-                {/* // _PIN_ aqui */}
-                <Text as="p" size="2">
-                  
-                </Text>
-
-              </Box>
-            </Flex>
-          </Box>
+          <Text as="p" size="2" mb="5" color="gray">
+            Create or delete system users.
+          </Text>
         </Box>
-      </Grid>
-    </Card>
-  );
-};
 
+        <Table.Root>
+          <Table.Body>
+            {loading ? (
+              <Table.Row>
+                <Table.RowHeaderCell>
+                  <Loader />
+                </Table.RowHeaderCell>
+              </Table.Row>
+            ) : (
+              userList.map((user, i) => (
+                <Table.Row key={i}>
+                  <Table.RowHeaderCell>
+                    {/* // <○> UserIconSVG */}
+                    {user.user_group == ROLES["Admin"] ? (
+                      <UserIconSVG u_color="#ffa057" />
+                    ) : (
+                      <UserIconSVG u_color="gray" />
+                    )}
+                  </Table.RowHeaderCell>
+
+                  <Table.Cell>
+                    <Text size="2">{`${user?.first_name} ${user?.last_name}`}</Text>{" "}
+                  </Table.Cell>
+
+                  <Table.Cell>
+                    <Text size="2" color="gray">
+                      {user?.email}
+                    </Text>
+                  </Table.Cell>
+
+                  <Table.Cell>
+                    {user.user_group == ROLES["Admin"] ? (
+                      <Badge color="orange" variant="soft" radius="full">
+                        Admin
+                      </Badge>
+                    ) : (
+                      <Badge color="gray" variant="soft" radius="full">
+                        Staff
+                      </Badge>
+                    )}
+                  </Table.Cell>
+
+                  <Table.Cell>
+                    <Flex flexGrow="1" justify="end" align="center">
+                      {/* // <○> RemoveUser */}
+                      <RemoveUser user_id={user.pkid} user_name = {user.first_name} />
+                    </Flex>
+                  </Table.Cell>
+                </Table.Row>
+              ))
+            )}
+          </Table.Body>
+        </Table.Root>
+      </Card>
+    </>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+// ★ Temp ✦───────────────────────────────────────────────────➤
 const Temp = () => {
+  // ── ✦──DOM──➤
   return (
     <div
       id="canvas"
       className="flex flex-col gap-10 justify-center items-center p-6"
     >
-      <PaginatedItems itemsPerPage={4} />
-
-      <PatientDetails />
+      {/* //<○>  UserTable */}
+      <UserTable />
     </div>
   );
-};
+}; // ★ ✦─────────────────────────────────────────────────────➤
 
 export default Temp;

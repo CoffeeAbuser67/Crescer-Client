@@ -46,7 +46,7 @@ const routes = [
         path: "temp",
         element: (
           <RouteProtector allowedRoles={[ROLES.Staff, ROLES.User, ROLES.Admin]}>
-            <Temp />,
+            <Temp />
           </RouteProtector>
         ),
       },

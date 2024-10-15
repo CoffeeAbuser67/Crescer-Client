@@ -6,7 +6,8 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  pk: number;
+  pkid: number;
+  user_group: number;
 }
 
 const getInitialLoggedInValue = (): boolean => {
@@ -14,27 +15,29 @@ const getInitialLoggedInValue = (): boolean => {
   return loggedIn === "true"; // Return true if the value is "true"
 };
 
-
-const getActiveStoredUser = (): User|null => {
+const getActiveStoredUser = (): User | null => {
   const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) as User : null; 
+  return user ? (JSON.parse(user) as User) : null;
 };
-
 
 interface UserStore {
   user: null | User;
-  user_role : number | undefined;
+  user_role: number | undefined;
   isLoggedIn: boolean;
+  userList: User[];
+  setUserList: (userList: User[]) => void;
   setActiveUser: (userData: User) => void;
-  setUserRole: (role : number) => void;
-  removeActiveUser: () => void
+  setUserRole: (role: number) => void;
+  removeActiveUser: () => void;
 }
-
 
 export const useUserStore = create<UserStore>((set) => ({
   user: getActiveStoredUser(),
   isLoggedIn: getInitialLoggedInValue(), // Dynamically set initial value
   user_role: undefined,
+
+  userList: [],
+  setUserList: (userList) => set({ userList: userList }),
 
   setActiveUser: (userData) => {
     set({ user: userData, isLoggedIn: true });
@@ -43,7 +46,7 @@ export const useUserStore = create<UserStore>((set) => ({
   },
 
   setUserRole: (role) => {
-    set({user_role : role})
+    set({ user_role: role });
   },
 
   removeActiveUser: () => {
