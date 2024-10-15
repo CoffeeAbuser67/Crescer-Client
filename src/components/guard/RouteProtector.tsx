@@ -38,7 +38,7 @@ const RouteProtector: React.FC<PropType> = ({ allowedRoles, children }) => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        const pk = user?.pk;
+        const pk = user?.pkid;
         const response = await axios.get(`/auth/userRole/${pk}/`);
         const group_id = response?.data?.id;
         setUserRole(group_id);

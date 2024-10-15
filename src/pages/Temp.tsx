@@ -345,7 +345,7 @@ const UserTable = () => {
     // _PIN_ ✦── reloadUsers ✉ ───➤
     const reloadUsers = async () => {
 
-      console.log("active_user id", active_user?.pk) //[LOG]
+      console.log("active_user id", active_user?.pkid) //[LOG]
       setLoading(true);
       await loadUsers();
       setLoading(false);
@@ -387,8 +387,8 @@ const UserTable = () => {
                 <Table.Row key={i}>
                   <Table.RowHeaderCell>
                     {/* // <○> UserIconSVG */}
-
-                    {user.pkid == active_user?.pk ? (
+                    {/*  WARN  my list user returns pkid and not pk, pk is a reserved word  */}
+                    {user.pkid == active_user?.pkid ? (
                       <UserIconSVG u_color="green" />
                     ) : user.user_group == ROLES["Admin"] ? (
                       <UserIconSVG u_color="#ffa057" />
