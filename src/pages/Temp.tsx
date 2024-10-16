@@ -1,6 +1,5 @@
 // HERE import
 import { useEffect, useState } from "react";
-
 import {
   Badge,
   Box,
@@ -20,18 +19,16 @@ import {
   AlertDialog,
   CheckboxGroup,
 } from "@radix-ui/themes";
-
 import "yup-phone-lite";
-
 import { useFormik } from "formik";
-
 import handleAxiosError from "../utils/handleAxiosError";
 import useAxiosErrorInterceptor from "../hooks/useAxiosErrorInterceptor";
-
 import * as Yup from "yup";
+import useAuthService from "../utils/authService";
 import useUserService from "../utils/userService";
 import { useUserStore } from "../store/userStore";
 import Loader from "../components/Loader";
+import { toast } from "react-toastify";
 
 // [●] ROLES
 const ROLES = {
@@ -103,14 +100,26 @@ const UserIconSVG: React.FC<{ u_color: string }> = ({ u_color }) => (
 const AddUser = () => {
   const [open, setOpen] = useState(false);
 
-  // const axios = useAxiosErrorInterceptor();
-  // const { loadPatients } = usePatientService();
+  const axios = useAxiosErrorInterceptor();
+  const { loadUsers } = useUserService();
+
+  const passwordRules = /^(?=.*\d).{8,}$/;
+  // min 8 characters, 1 upper case letter, 1 lower case letter, 1 numeric digit.
 
   const validationSchema = Yup.object({
     first_name: Yup.string().required("Patient name is required"),
     last_name: Yup.string().required("Parent name is required"),
     email: Yup.string().email("Invalid email address"),
-    password: Yup.string().required("Password is required"),
+
+    password1: Yup.string()
+      .matches(passwordRules, {
+        message:
+          "Password must have: 1 numeric digit, and at least 8 characters",
+      })
+      .required("Required"),
+    password2: Yup.string()
+      .oneOf([Yup.ref("password1"), undefined], "Passwords must match")
+      .required("Required"),
   });
 
   const formik = useFormik({
@@ -118,7 +127,8 @@ const AddUser = () => {
       first_name: "",
       last_name: "",
       email: "",
-      password: "",
+      password1: "",
+      password2: "",
       isAdmin: false, // Add checkbox initial value
     },
 
@@ -126,16 +136,26 @@ const AddUser = () => {
 
     onSubmit: async (values) => {
       // _PIN_ ✦── Add User ✉ ──➤
-      console.log("Form values:", values); // [LOG] Patient saved
 
-      //   const url = "/create_patient/";
-      //   const res = await axios.post(url, values);
-      //   console.log("response status:", res.status); // [LOG] response status
-      //   await loadPatients();
-      // } catch (err) {
-      //   console.log("err", err); // [LOG] err
-      //   handleAxiosError(err);
-      // }
+      console.log("start values:", values); // [LOG] Patient saved
+      const { isAdmin, ...rest } = values;
+      let group_id = 3;
+      if (isAdmin) {
+        group_id = 2;
+      }
+      const newValues = { ...rest, user_group: group_id };
+      console.log("end values:", newValues); // [LOG] Patient saved
+
+      try {
+        const url = "/auth/registration/";
+        const res = await axios.post(url, newValues);
+        console.log("response status:", res.status); // [LOG] response status
+        await loadUsers();
+        toast.success("User created!");
+      } catch (err) {
+        console.log("err", err); // [LOG] err
+        handleAxiosError(err);
+      }
       setOpen(false);
     },
   });
@@ -235,15 +255,34 @@ const AddUser = () => {
                 </Text>
                 <TextField.Root
                   type="password"
-                  name="password"
-                  value={formik.values.password}
+                  name="password1"
+                  value={formik.values.password1}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                 />
 
-                {formik.touched.password && formik.errors.password && (
+                {formik.touched.password1 && formik.errors.password1 && (
                   <Text size="2" color="red">
-                    {formik.errors.password}
+                    {formik.errors.password1}
+                  </Text>
+                )}
+              </label>
+
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Confirm Password
+                </Text>
+                <TextField.Root
+                  type="password"
+                  name="password2"
+                  value={formik.values.password2}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+
+                {formik.touched.password2 && formik.errors.password2 && (
+                  <Text size="2" color="red">
+                    {formik.errors.password2}
                   </Text>
                 )}
               </label>
@@ -275,16 +314,24 @@ const RemoveUser = ({
   user_id: number | undefined;
   user_name: string | undefined;
 }) => {
+
   const axios = useAxiosErrorInterceptor();
   const { loadUsers } = useUserService();
+  const { logout } = useAuthService();
+  const active_user = useUserStore((state) => state.user);
 
-  // _PIN_ ✦── peformRemove ✉ ───➤
+  // _PIN_ ✦── peformRemove ✉ ──➤
   const peformRemove = async () => {
     try {
       console.log("id is :", user_id); // [LOG]
+
       const url = `/auth/deleteUser/${user_id}/`;
+      if(user_id == active_user?.pkid){
+        logout()
+      } 
       const res = await axios.delete(url);
       console.log("response :", res); // [LOG]
+
       await loadUsers();
     } catch (err) {
       console.log("err", err); // [LOG]
@@ -308,11 +355,24 @@ const RemoveUser = ({
         </AlertDialog.Trigger>
 
         <AlertDialog.Content maxWidth="500px">
-          <AlertDialog.Title>Delete {user_name}</AlertDialog.Title>
-          <AlertDialog.Description size="2">
-            Are you sure you want to delete this user? This action is permanent
-            and cannot be undone.
-          </AlertDialog.Description>
+
+          {user_id == active_user?.pkid ? (
+            <>
+              <AlertDialog.Title>Delete your own user?</AlertDialog.Title>
+              <AlertDialog.Description size="2">
+                Are you sure you want to delete your user? This action is
+                permanent and cannot be undone.
+              </AlertDialog.Description>
+            </>
+          ) : (
+            <>
+              <AlertDialog.Title>Delete {user_name}</AlertDialog.Title>
+              <AlertDialog.Description size="2">
+                Are you sure you want to delete this user? This action is
+                permanent and cannot be undone.
+              </AlertDialog.Description>
+            </>
+          )}
 
           <Flex gap="3" justify="end">
             <AlertDialog.Cancel>
@@ -342,10 +402,9 @@ const UserTable = () => {
   const userList = useUserStore((state) => state.userList);
 
   useEffect(() => {
-    // _PIN_ ✦── reloadUsers ✉ ───➤
+    // _PIN_ ✦── reloadUsers ✉ ──➤
     const reloadUsers = async () => {
-
-      console.log("active_user id", active_user?.pkid) //[LOG]
+      console.log("active_user id", active_user?.pkid); //[LOG]
       setLoading(true);
       await loadUsers();
       setLoading(false);
@@ -387,7 +446,6 @@ const UserTable = () => {
                 <Table.Row key={i}>
                   <Table.RowHeaderCell>
                     {/* // <○> UserIconSVG */}
-                    {/*  WARN  my list user returns pkid and not pk, pk is a reserved word  */}
                     {user.pkid == active_user?.pkid ? (
                       <UserIconSVG u_color="green" />
                     ) : user.user_group == ROLES["Admin"] ? (
@@ -395,8 +453,6 @@ const UserTable = () => {
                     ) : (
                       <UserIconSVG u_color="gray" />
                     )}
-
-
                   </Table.RowHeaderCell>
 
                   <Table.Cell>

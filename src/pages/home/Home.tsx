@@ -415,7 +415,7 @@ const UpdatePatient = () => (
   <>Let go</>
 ); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// (✪) PopoverAction
+// <✪> PopoverAction
 const PopoverAction = () => (
   <Popover.Root>
     <Popover.Trigger>
@@ -434,7 +434,7 @@ const PopoverAction = () => (
       </Button>
       <Separator orientation="horizontal" size="4" className=" my-4" />
 
-      {/* // (○) RemovePatient*/}
+      {/* // <○> RemovePatient*/}
       <RemovePatient />
     </Popover.Content>
   </Popover.Root>
@@ -482,7 +482,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient }) => {
             {`Idade: ${patient.age}`}
           </Text>
 
-          {/* // (○) Badge */}
+          {/* // ○ Badge */}
           {patient.isValid ? (
             <Badge color="jade" variant="soft" radius="full">
               Authorized
