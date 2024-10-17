@@ -39,9 +39,10 @@ const handleAxiosError = (error: unknown) => {
             message = data.non_field_errors.join(" ");
           } else {
             // Extract first field-specific error message
+            const fieldKeys = Object.keys(data);
             const fieldErrors = Object.values(data).flat();
             if (typeof fieldErrors[0] === "string") {
-              message = fieldErrors[0];
+              message = `${fieldKeys[0]} : ${fieldErrors[0]}` ;
             }
           }
         } else if (typeof data === "string") {

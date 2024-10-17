@@ -13,6 +13,7 @@ import {
   Heading,
   AlertDialog,
   Button,
+  Tabs,
   Inset,
   ScrollArea,
   TextField,
@@ -39,27 +40,9 @@ import usePatientService from "../../utils/patientService";
 
 import { Patient, PatientBriefData } from "../../types/patient";
 
-// [●] CreditCardDemoProps
-interface CreditCardDemoProps {
-  patientName: string | undefined;
-  parentName: string | undefined;
-  expire: string | undefined;
-}
-
 // [●] PatientCardProps
 interface PatientCardProps {
   patient: PatientBriefData;
-}
-
-// [●] LeftBoxProps
-interface LeftBoxProps {
-  activePatientID: number | null;
-  setActivePatientID: (id: number | null) => void;
-}
-
-// [●] RightBoxProps
-interface RightBoxProps {
-  patientID: number | null;
 }
 
 // [●] DetailsBoxProps
@@ -74,6 +57,21 @@ const ROLES = {
   Admin: 1,
   AnyRole: 0,
 };
+
+// <✪> ReadSVG
+const ReadSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+  >
+    <path
+      fill="orange"
+      d="M23 10h-.1a5 5 0 0 0-8.33-2.64C13.78 7.13 12.91 7 12 7s-1.78.12-2.57.36A5 5 0 0 0 1.1 10H1c-.55 0-1 .45-1 1s.45 1 1 1h.1a5 5 0 0 0 9.9-1c0-.66-.13-1.29-.36-1.87.43-.08.88-.13 1.36-.13s.94.04 1.36.13A5.002 5.002 0 1 0 22.9 12h.1c.55 0 1-.45 1-1s-.45-1-1-1zM6 14c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3zm12 0c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
+    />
+  </svg>
+);
 
 // <●> AddButtonSVG
 const AddButtonSVG = () => (
@@ -139,6 +137,20 @@ const CrescerFlowerSVG = () => (
   </svg>
 );
 
+// <●> UpdateSVG
+const UpdateSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={20}
+    height={20}
+    aria-hidden="true"
+    fill="orange"
+    viewBox="0 0 14 14"
+  >
+    <path d="M12.805 8.25q0 .04-.008.055-.5 2.093-2.094 3.394Q9.109 13 6.969 13q-1.14 0-2.207-.43t-1.903-1.226l-1.007 1.008q-.149.148-.352.148-.203 0-.352-.148Q1 12.203 1 12V8.5q0-.203.148-.352Q1.297 8 1.5 8H5q.203 0 .352.148.148.149.148.352 0 .203-.148.352l-1.07 1.07q.554.515 1.257.797Q6.242 11 7 11q1.047 0 1.953-.508.906-.508 1.453-1.398.086-.133.414-.914.063-.18.235-.18h1.5q.101 0 .175.074.075.074.075.176zM13 2v3.5q0 .203-.148.352Q12.703 6 12.5 6H9q-.203 0-.352-.148Q8.5 5.703 8.5 5.5q0-.203.148-.352L9.727 4.07Q8.57 3 7 3q-1.047 0-1.953.508-.906.508-1.453 1.398-.086.133-.414.914-.063.18-.235.18H1.391q-.102 0-.176-.074T1.14 5.75v-.055q.507-2.093 2.109-3.394Q4.852 1 7 1q1.14 0 2.219.434 1.078.433 1.914 1.222l1.015-1.008q.149-.148.352-.148.203 0 .352.148Q13 1.797 13 2z" />
+  </svg>
+);
+
 // <●> DotsSVG
 const DotsSVG = () => (
   <svg
@@ -193,7 +205,7 @@ const AddPatient = () => {
 
     onSubmit: async (values) => {
       // _PIN_ ↯ ── Add Patient ✉ ─── ↯
-      console.log("Form values:", values); // [LOG] Patient saved ➤
+      console.log("Add Patient:", values); // [LOG] Add Patient ➤
       try {
         const url = "/create_patient/";
         const res = await axios.post(url, values);
@@ -530,7 +542,7 @@ const PatientListBox = () => {
   }, [page]);
 
   // (●) handlePageChange
-  const handlePageChange = (event) => {
+  const handlePageChange = (event: { selected: number; }) => {
     const selectedPage = event.selected + 1;
     setPage(selectedPage);
   };
@@ -647,101 +659,305 @@ const NoteBox = ({ note }: { note: string | undefined }) => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
+// ✪TesteComponent
+const TesteComponent = () => {
+
+  const patientDetails = usePatientStore((state) => state.patientDetails);
+  const { loadPatientDetails } = usePatientService();
+  const axios = useAxiosErrorInterceptor();
+  const patientID = usePatientStore((state) => state.patientID);
+  const { loadPatients } = usePatientService();
+
+  const validationSchema = Yup.object({
+    patient_name: Yup.string().required("Patient name is required"),
+    parent_name: Yup.string().required("Parent name is required"),
+    birth_date: Yup.date().required("Birth date is required"),
+    expiration_date: Yup.date().required("Expiration date is required"),
+    email: Yup.string().email("Invalid email address"),
+    phone_number: Yup.string()
+      .phone("BR", "Please enter a valid phone number")
+      .required("A phone number is required"),
+    // phone_number: brazilianPhoneNumberSchema,
+  });
+
+  const formik = useFormik({
+    initialValues: { ...patientDetails },
+    enableReinitialize: true, //need to reinitialize the form whenever the patient prop changes.
+    validationSchema,
+
+    onSubmit: async (values) => {
+      // _PIN_ ↯ ── update Patient ✉ ─── ↯
+
+      // HERE  update Patient
+
+      console.log("updated values:", values); // [LOG] update content ➤
+
+      try {
+        const url = `/patientsRUD/${patientID}/`;
+        const res = await axios.put(url, values);
+        console.log("response status:", res.status); // [LOG] response status ➤
+        await loadPatientDetails();
+        await loadPatients();
+      } catch (err) {
+        handleAxiosError(err);
+      }
+    },
+  });
+
+  return (
+    <Box>
+      <form onSubmit={formik.handleSubmit}>
+        <Box className="grid grid-rows-3 grid-flow-col gap-4">
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              Patient Name
+            </Text>
+            <TextField.Root
+              type="text"
+              name="patient_name"
+              value={formik.values.patient_name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.patient_name && formik.errors.patient_name && (
+              <Text size="2" color="red">
+                {formik.errors.patient_name}
+              </Text>
+            )}
+          </label>
+
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              Parent Name
+            </Text>
+            <TextField.Root
+              type="text"
+              name="parent_name"
+              value={formik.values.parent_name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.parent_name && formik.errors.parent_name && (
+              <Text size="2" color="red">
+                {formik.errors.parent_name}
+              </Text>
+            )}
+          </label>
+
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              Birth Date
+            </Text>
+            <TextField.Root
+              type="date"
+              name="birth_date"
+              value={formik.values.birth_date}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.birth_date && formik.errors.birth_date && (
+              <Text size="2" color="red">
+                {formik.errors.birth_date}
+              </Text>
+            )}
+          </label>
+
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              Expiration Date
+            </Text>
+            <TextField.Root
+              type="date"
+              name="expiration_date"
+              value={formik.values.expiration_date}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.expiration_date &&
+              formik.errors.expiration_date && (
+                <Text size="2" color="red">
+                  {formik.errors.expiration_date}
+                </Text>
+              )}
+          </label>
+
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              Email
+            </Text>
+            <TextField.Root
+              type="email"
+              name="email"
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.email && formik.errors.email && (
+              <Text size="2" color="red">
+                {formik.errors.email}
+              </Text>
+            )}
+          </label>
+
+          <label>
+            <Text as="div" size="2" mb="1" weight="bold">
+              DDD + Phone
+            </Text>
+            <TextField.Root
+              type="tel"
+              name="phone_number"
+              value={formik.values.phone_number}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.phone_number && formik.errors.phone_number && (
+              <Text size="2" color="red">
+                {formik.errors.phone_number}
+              </Text>
+            )}
+          </label>
+        </Box>
+
+        <Flex justify={"end"}>
+          <Button
+            className=" w-1/6 mt-6"
+            type="submit"
+            disabled={!formik.dirty}
+          >
+            Save
+          </Button>
+        </Flex>
+      </form>
+    </Box>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 // <✪> DetailsBox
-const DetailsBox: React.FC<DetailsBoxProps> = ({ patient }) => {
+const DetailsBox = () => {
+  // const [tabValue, setTabValue] = useState("list"); // Default tab value
+
+  // const resetTab = () => {
+  //   setTabValue("list"); // Reset to the default tab value
+  // };
+
+  const patient = usePatientStore((state) => state.patientDetails);
   const patientID = usePatientStore((state) => state.patientID);
   const patientList = usePatientStore((state) => state.patientList);
 
   return (
     <Card size="2" className="h-full p-8">
-      <Heading as="h3" size="4" mb="6" color="orange">
-        {patient?.patient_name}
-      </Heading>
+      <Tabs.Root defaultValue="list">
+        {/* <Tabs.Root value={tabValue} onValueChange={setTabValue}> */}
 
-      <Box className="grid grid-rows-3 grid-flow-col gap-4">
-        <Box>
-          <Text as="div" weight="bold" size="2" mb="1">
-            Nome do responsável:
-          </Text>
-          <Text as="p" color="gray" size="2">
-            {patient?.parent_name}
-          </Text>
-        </Box>
+        <Tabs.List className=" flex items-center justify-between mb-7">
+          <Heading as="h3" size="4" color="orange">
+            {patient?.patient_name}
+          </Heading>
 
-        <Box>
-          <Text as="div" weight="bold" size="2" mb="1">
-            Telefone:
-          </Text>
-          <Text as="p" color="gray" size="2">
-            {patient?.phone_number}
-          </Text>
-        </Box>
+          <Box className="flex items-center gap-2">
+            {/* // <○> UpdateSVG*/}
+            <Tabs.Trigger value="list">
+              <ReadSVG />
+            </Tabs.Trigger>
 
-        <Box>
-          <Text as="div" weight="bold" size="2" mb="1">
-            Email:
-          </Text>
-          <Text as="div" size="2" color="gray">
-            {patient?.email}
-          </Text>
-        </Box>
+            {/* // <○> ReadSVG*/}
+            <Tabs.Trigger value="edit">
+              <UpdateSVG />
+            </Tabs.Trigger>
+          </Box>
+        </Tabs.List>
 
-        <Box>
-          <Text as="div" weight="bold" size="2" mb="1">
-            Criado em:
-          </Text>
-          <Text as="div" color="gray" size="2">
-            {patient?.created_at}
-          </Text>
-        </Box>
+        <Tabs.Content value="list">
+          <Box className="grid grid-rows-3 grid-flow-col gap-4">
+            <Box>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Nome do responsável:
+              </Text>
+              <Text as="p" color="gray" size="2">
+                {patient?.parent_name}
+              </Text>
+            </Box>
 
-        <Box>
-          <Text as="div" weight="bold" size="2" mb="1">
-            Nascimento:
-          </Text>
-          <Text as="div" color="gray" size="2">
-            {patient?.birth_date}
-          </Text>
-        </Box>
+            <Box>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Telefone:
+              </Text>
+              <Text as="p" color="gray" size="2">
+                {patient?.phone_number}
+              </Text>
+            </Box>
 
-        <Box>
-          <Text as="div" weight="bold" size="2" mb="1">
-            Vencimento:
-          </Text>
-          <Text as="div" color="gray" size="2">
-            {patient?.expiration_date}
-          </Text>
-        </Box>
+            <Box>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Email:
+              </Text>
+              <Text as="div" size="2" color="gray">
+                {patient?.email}
+              </Text>
+            </Box>
 
-        <Box>
-          <Text as="div" weight="bold" size="2" mb="1">
-            Status
-          </Text>
+            <Box>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Criado em:
+              </Text>
+              <Text as="div" color="gray" size="2">
+                {patient?.created_at}
+              </Text>
+            </Box>
 
-          <Flex height="24px" align="center">
-            {patientList.find((patient) => {
-              return patient.pkid === patientID;
-            })?.isValid ? (
-              <Badge color="green" ml="-2px">
-                Authorized
-              </Badge>
-            ) : (
-              <Badge color="red" ml="-2px">
-                Expired
-              </Badge>
-            )}
-          </Flex>
-        </Box>
-      </Box>
+            <Box>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Nascimento:
+              </Text>
+              <Text as="div" color="gray" size="2">
+                {patient?.birth_date}
+              </Text>
+            </Box>
+
+            <Box>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Vencimento:
+              </Text>
+              <Text as="div" color="gray" size="2">
+                {patient?.expiration_date}
+              </Text>
+            </Box>
+
+            <Box>
+              <Text as="div" weight="bold" size="2" mb="1">
+                Status
+              </Text>
+
+              <Flex height="24px" align="center">
+                {patientList.find((patient) => {
+                  return patient.pkid === patientID;
+                })?.isValid ? (
+                  <Badge color="green" ml="-2px">
+                    Authorized
+                  </Badge>
+                ) : (
+                  <Badge color="red" ml="-2px">
+                    Expired
+                  </Badge>
+                )}
+              </Flex>
+            </Box>
+          </Box>
+        </Tabs.Content>
+
+        {/* // ○ TesteComponent*/}
+        <Tabs.Content value="edit">
+          <TesteComponent/>
+        </Tabs.Content>
+      </Tabs.Root>
     </Card>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // <✪> CreditCardDemo
-const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
-  patientName,
-  expire,
-}) => {
+const CreditCardDemo = () => {
+  const patientDetails = usePatientStore((state) => state.patientDetails);
+
   // (●) sliceNameIfNeed
   const sliceNameIfNeed = (patientName: string) => {
     if (patientName.length >= 23) {
@@ -764,14 +980,15 @@ const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
         <div className="mt-4">
           <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
           <p className="text-xl font-mono mt-1">
-            {patientName && `${sliceNameIfNeed(patientName)} ✿`}
+            {patientDetails?.patient_name &&
+              `${sliceNameIfNeed(patientDetails.patient_name)} ✿`}
           </p>
         </div>
 
         <div className="mt-8 pb-0 flex justify-end">
           <div>
             <h4 className="text-sm uppercase tracking-wide">Expires</h4>
-            <p className="text-sm">{expire} </p>
+            <p className="text-sm">{patientDetails?.expiration_date} </p>
           </div>
         </div>
       </div>
@@ -780,36 +997,26 @@ const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // ★ Home ─────────────────────────────────────────────────────➤
-// WARN No type
+
 const Home = () => {
   // const [activePatientID, setActivePatientID] = useState<number | null>(null);
-  const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
 
+  const { loadPatientDetails } = usePatientService();
   const patientID = usePatientStore((state) => state.patientID);
+  const patientDetails = usePatientStore((state) => state.patientDetails);
 
   useEffect(() => {
     // _PIN_ ✦── loadPatientDetails ✉ ───➤ ❀
-    const loadPatientDetails = async (patientID: number | undefined) => {
-      try {
-        if (patientID) {
-          const url = `/patientsRUD/${patientID}/`;
-          console.log(" id : ", patientID); // [LOG]
-          const response = await axiosPrivate.get(url);
-          setPatientDetails(response?.data);
-          console.log("Patient Details", response?.data); // [LOG] Patient Details ✿
-        }
-      } catch (err: unknown) {
-        if (err) {
-          handleAxiosError(err);
-        }
-      }
+    const reloadPatientDetails = async () => {
+      await loadPatientDetails()
     };
-
-    loadPatientDetails(patientID);
+    
+    reloadPatientDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientID]);
 
   return (
-    //──✦─DOM───➤
+    //──✦DOM➤
     <>
       <Box
         id="canvas"
@@ -822,16 +1029,12 @@ const Home = () => {
 
         {/* // <○> CreditCardDemo*/}
         <Box className="row-start-1 row-span-1 w-[750px]">
-          <CreditCardDemo
-            patientName={patientDetails?.patient_name}
-            parentName={patientDetails?.parent_name}
-            expire={patientDetails?.expiration_date}
-          />
+          <CreditCardDemo />
         </Box>
 
         {/* // <○> DetailsBox*/}
         <Box className="row-start-2 row-span-1 w-[750px]">
-          <DetailsBox patient={patientDetails} />
+          <DetailsBox/>
         </Box>
 
         {/* // <○> NoteBox*/}

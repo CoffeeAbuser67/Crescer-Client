@@ -7,7 +7,12 @@ import useAxiosErrorInterceptor from "../hooks/useAxiosErrorInterceptor";
 const usePatientService = () => {
   
   const axios = useAxiosErrorInterceptor()
+
+  const patientID = usePatientStore((state) => state.patientID);
+
+  const setPatientDetails = usePatientStore((state) => state.setPatientDetails);
   const setPatientList = usePatientStore((state) => state.setPatientList);
+
   const page = usePatientStore((state) => state.page);
   const setTotalPages = usePatientStore((state) => state.setTotalPages);
 
@@ -44,7 +49,24 @@ const usePatientService = () => {
      // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
   }
 
-  return {loadPatients}
+    // {●} loadPatientDetails()
+    const loadPatientDetails = async () => {
+      try {
+
+        if(patientID){
+          const url = `/patientsRUD/${patientID}/`;
+          const response = await axios.get(url);
+          setPatientDetails(response?.data);
+        }
+
+      } catch (err: unknown) {
+        if (err) {
+          handleAxiosError(err);
+        }
+      }
+    };
+
+  return {loadPatients,loadPatientDetails }
 
 }
 
