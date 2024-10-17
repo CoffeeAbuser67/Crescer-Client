@@ -19,6 +19,7 @@ import {
   TextField,
   Grid,
   DataList,
+  TextArea,
   Dialog,
   Popover,
   Separator,
@@ -58,7 +59,7 @@ const ROLES = {
   AnyRole: 0,
 };
 
-// <✪> ReadSVG
+// <●> ReadSVG
 const ReadSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -141,8 +142,8 @@ const CrescerFlowerSVG = () => (
 const UpdateSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={20}
-    height={20}
+    width={18}
+    height={18}
     aria-hidden="true"
     fill="orange"
     viewBox="0 0 14 14"
@@ -171,13 +172,6 @@ const AddPatient = () => {
   const [open, setOpen] = useState(false);
   const axios = useAxiosErrorInterceptor();
   const { loadPatients } = usePatientService();
-
-  // const brazilianPhoneNumberSchema = Yup.string()
-  //   // Brzillian phone Number validation
-  //   .matches(
-  //     /^\s*(\d{2}|\d{0})[-. ]?(\d{5}|\d{4})[-. ]?(\d{4})[-. ]?\s*$/,
-  //     "Invalid phone number format"
-  //   );
 
   const validationSchema = Yup.object({
     patient_name: Yup.string().required("Patient name is required"),
@@ -421,11 +415,6 @@ const RemovePatient = () => {
   );
 }; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// {✪} UpdatePatient
-const UpdatePatient = () => {
-  return <> Nada aqui </>;
-}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
 // <●> PopoverAction
 const PopoverAction = () => (
   <Popover.Root>
@@ -440,7 +429,6 @@ const PopoverAction = () => (
       maxWidth="300px"
       className="flex flex-col items-center"
     >
-      {/* // {○} UpdatePatient*/}
       <Button color="orange" variant="ghost">
         Edit profile
       </Button>
@@ -542,7 +530,7 @@ const PatientListBox = () => {
   }, [page]);
 
   // (●) handlePageChange
-  const handlePageChange = (event: { selected: number; }) => {
+  const handlePageChange = (event: { selected: number }) => {
     const selectedPage = event.selected + 1;
     setPage(selectedPage);
   };
@@ -618,9 +606,37 @@ const PatientListBox = () => {
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // <✪> NoteBox
-const NoteBox = ({ note }: { note: string | undefined }) => {
+const NoteBox = () => {
+  // HERE
+  const patientDetails = usePatientStore((state) => state.patientDetails);
+  const axios = useAxiosErrorInterceptor();
+  const patientID = usePatientStore((state) => state.patientID);
+  const { loadPatientDetails } = usePatientService();
+
+  const formik = useFormik({
+    initialValues: { note: patientDetails?.note },
+    enableReinitialize: true, //need to reinitialize the form whenever the patient prop changes.
+
+    onSubmit: async (values) => {
+      // _PIN_ ↯ ── update note ✉ ─── ↯
+
+      console.log("note values : ", values); //[LOG]
+      try {
+        const url = `/patientNote/${patientID}/`;
+        const res = await axios.patch(url, values);
+        console.log("response status:", res.status); // [LOG] 
+        await loadPatientDetails();
+
+      } catch (err) {
+        console.log("err", err); // [LOG] err  
+        handleAxiosError(err);
+      }
+
+    },
+  });
+
   return (
-    <Card size="2" className="h-full p-8">
+    <Card size="2" className="h-full p-6">
       <ScrollArea
         type="auto"
         scrollbars="vertical"
@@ -643,14 +659,56 @@ const NoteBox = ({ note }: { note: string | undefined }) => {
 
           <Box pl="6">
             <Flex direction="column" gap="4">
-              <Box>
-                <Text as="div" size="2" color="orange" mb="1">
-                  Note:
-                </Text>
-                <Text as="p" size="2">
-                  {note}
-                </Text>
-              </Box>
+              <Tabs.Root defaultValue="list">
+
+                <Tabs.List className=" flex items-center justify-between mb-7 max-w-[620px]">
+                  <Text as="div" size="2" color="orange" mb="1">
+                    Note:
+                  </Text>
+
+                  <Box className="flex items-center gap-2">
+                    {/* // <○> UpdateSVG*/}
+                    <Tabs.Trigger value="list">
+                      <ReadSVG />
+                    </Tabs.Trigger>
+
+                    {/* // <○> ReadSVG*/}
+                    <Tabs.Trigger value="edit">
+                      <UpdateSVG />
+                    </Tabs.Trigger>
+                  </Box>
+                </Tabs.List>
+
+                <Tabs.Content className = "max-w-[620px]" value="list">
+                  <Text className = "whitespace-pre-wrap" size="2">
+                    {patientDetails?.note}
+                  </Text>
+                </Tabs.Content>
+
+                <Tabs.Content value="edit">
+                  <form onSubmit={formik.handleSubmit}>
+                    <label>
+                      <TextArea
+                        className="flex h-48"
+                        name="note"
+                        value={formik.values.note}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                    </label>
+
+                    <Flex justify={"end"}>
+                      <Button
+                        className=" w-1/6 mt-6"
+                        type="submit"
+                        disabled={!formik.dirty}
+                      >
+                        Save
+                      </Button>
+                    </Flex>
+                  </form>
+                </Tabs.Content>
+              </Tabs.Root>
             </Flex>
           </Box>
         </Box>
@@ -659,9 +717,8 @@ const NoteBox = ({ note }: { note: string | undefined }) => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ✪TesteComponent
-const TesteComponent = () => {
-
+// <●> UpdatePatient
+const UpdatePatient = () => {
   const patientDetails = usePatientStore((state) => state.patientDetails);
   const { loadPatientDetails } = usePatientService();
   const axios = useAxiosErrorInterceptor();
@@ -687,8 +744,6 @@ const TesteComponent = () => {
 
     onSubmit: async (values) => {
       // _PIN_ ↯ ── update Patient ✉ ─── ↯
-
-      // HERE  update Patient
 
       console.log("updated values:", values); // [LOG] update content ➤
 
@@ -834,22 +889,16 @@ const TesteComponent = () => {
 
 // <✪> DetailsBox
 const DetailsBox = () => {
-  // const [tabValue, setTabValue] = useState("list"); // Default tab value
-
-  // const resetTab = () => {
-  //   setTabValue("list"); // Reset to the default tab value
-  // };
-
   const patient = usePatientStore((state) => state.patientDetails);
-  const patientID = usePatientStore((state) => state.patientID);
   const patientList = usePatientStore((state) => state.patientList);
+  const patientID = usePatientStore((state) => state.patientID);
 
   return (
     <Card size="2" className="h-full p-8">
       <Tabs.Root defaultValue="list">
         {/* <Tabs.Root value={tabValue} onValueChange={setTabValue}> */}
 
-        <Tabs.List className=" flex items-center justify-between mb-7">
+        <Tabs.List className=" flex items-center justify-between mb-7 max-w-[650px] ">
           <Heading as="h3" size="4" color="orange">
             {patient?.patient_name}
           </Heading>
@@ -945,9 +994,9 @@ const DetailsBox = () => {
           </Box>
         </Tabs.Content>
 
-        {/* // ○ TesteComponent*/}
+        {/* // <○> UpdatePatient*/}
         <Tabs.Content value="edit">
-          <TesteComponent/>
+          <UpdatePatient />
         </Tabs.Content>
       </Tabs.Root>
     </Card>
@@ -997,7 +1046,6 @@ const CreditCardDemo = () => {
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // ★ Home ─────────────────────────────────────────────────────➤
-
 const Home = () => {
   // const [activePatientID, setActivePatientID] = useState<number | null>(null);
 
@@ -1008,11 +1056,11 @@ const Home = () => {
   useEffect(() => {
     // _PIN_ ✦── loadPatientDetails ✉ ───➤ ❀
     const reloadPatientDetails = async () => {
-      await loadPatientDetails()
+      await loadPatientDetails();
     };
-    
+
     reloadPatientDetails();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientID]);
 
   return (
@@ -1034,17 +1082,16 @@ const Home = () => {
 
         {/* // <○> DetailsBox*/}
         <Box className="row-start-2 row-span-1 w-[750px]">
-          <DetailsBox/>
+          <DetailsBox />
         </Box>
 
         {/* // <○> NoteBox*/}
         <Box className="row-start-3 row-span-1 w-[750px]">
-          <NoteBox note={patientDetails?.note} />
+          <NoteBox />
         </Box>
       </Box>
     </>
   );
 };
-
 export default Home;
-// ★ ───────────────────────────────────────────────────────────────────➤
+// ★ ──────────────────────────────────────────────────────────➤
