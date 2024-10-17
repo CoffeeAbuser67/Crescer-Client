@@ -363,13 +363,13 @@ const RemovePatient = () => {
   // _PIN_ ✦── peformRemove ✉ ───➤
   const peformRemove = async () => {
     try {
-      console.log("id is :", patientID); // [LOG]  
+      console.log("id is :", patientID); // [LOG]
       const url = `/patientsRUD/${patientID}/`;
       const res = await axios.delete(url);
-      console.log("response :", res); // [LOG]  
+      console.log("response :", res); // [LOG]
       await loadPatients();
     } catch (err) {
-      console.log("err", err); // [LOG]  
+      console.log("err", err); // [LOG]
       handleAxiosError(err);
     }
   };
@@ -409,13 +409,12 @@ const RemovePatient = () => {
   );
 }; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// (●) UpdatePatient
-const UpdatePatient = () => (
-  // _PIN_ Missing
-  <>Let go</>
-); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+// {✪} UpdatePatient
+const UpdatePatient = () => {
+  return <> Nada aqui </>;
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// <✪> PopoverAction
+// <●> PopoverAction
 const PopoverAction = () => (
   <Popover.Root>
     <Popover.Trigger>
@@ -429,9 +428,11 @@ const PopoverAction = () => (
       maxWidth="300px"
       className="flex flex-col items-center"
     >
+      {/* // {○} UpdatePatient*/}
       <Button color="orange" variant="ghost">
         Edit profile
       </Button>
+
       <Separator orientation="horizontal" size="4" className=" my-4" />
 
       {/* // <○> RemovePatient*/}
@@ -736,7 +737,7 @@ const DetailsBox: React.FC<DetailsBoxProps> = ({ patient }) => {
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// ● CreditCardDemo
+// <✪> CreditCardDemo
 const CreditCardDemo: React.FC<CreditCardDemoProps> = ({
   patientName,
   expire,

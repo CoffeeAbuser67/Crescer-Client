@@ -14,15 +14,9 @@ const useUserService = () => {
   const loadUsers = async () => {
     
     try {
-
-      console.log("at working..."); // [LOG] working.... ✿ 
-
       const url = "/auth/listUsers/";
-
       const response = await axios.get(url);
-
       console.log("loaded users:", response?.data); // [LOG] loaded patients 
-  
       setUserList(response?.data);
 
     } catch (err: unknown) {
