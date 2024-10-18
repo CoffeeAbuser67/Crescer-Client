@@ -2,9 +2,10 @@
 import { Card, Heading, TabNav, IconButton, Tooltip } from "@radix-ui/themes";
 import { Link, useLocation } from "react-router-dom";
 import useAuthService from "../../utils/authService";
+import ComponentProtector from "../guard/ComponentProtector";
 
 // WARN Repeated SVG
-// <✪> CrescerFlowerSVG
+// <●> CrescerFlowerSVG
 const CrescerFlowerSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +48,14 @@ const CrescerFlowerSVG = () => (
   </svg>
 );
 
-// <✪> LogoutSVG
+// [●] ROLES
+const ROLES = {
+  User: 3,
+  Staff: 2,
+  Admin: 1,
+};
+
+// <●> LogoutSVG
 const LogoutSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -86,19 +94,18 @@ const TabNavigation = () => {
 
   return (
     <div>
-      <TabNav.Root>
+      <TabNav.Root >
         <TabNav.Link asChild active={location.pathname === "/"}>
           <Link to="/">Home</Link>
         </TabNav.Link>
 
-        <TabNav.Link asChild active={location.pathname === "/settings"}>
-          <Link to="/settings">Settings</Link>
-        </TabNav.Link>
-
-        <TabNav.Link asChild active={location.pathname === "/temp"}>
-          <Link to="/temp">Temp</Link>
-        </TabNav.Link>
+        <ComponentProtector allowedRoles={[ROLES.Admin]}>
+          <TabNav.Link asChild active={location.pathname === "/settings"} >
+            <Link to="/settings">Settings</Link>
+          </TabNav.Link>
+        </ComponentProtector>
       </TabNav.Root>
+      
     </div>
   );
 }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .

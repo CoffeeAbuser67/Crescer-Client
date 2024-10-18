@@ -8,14 +8,13 @@ import RouteProtector from "./components/guard/RouteProtector";
 const Home = lazy(() => import("./pages/home/Home"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
 const Login = lazy(() => import("./pages/auth/Login"));
-const Temp = lazy(() => import("./pages/Temp"));
+
 // . . . . . . . . . ➤
 
 const ROLES = {
   User: 3,
   Staff: 2,
   Admin: 1,
-  AnyRole: 0,
 };
 // . . . . . . . . . ➤
 
@@ -36,20 +35,12 @@ const routes = [
       {
         path: "settings",
         element: (
-          <RouteProtector allowedRoles={[ROLES.Staff, ROLES.User, ROLES.Admin]}>
-            <Settings />,
+          <RouteProtector allowedRoles={[ ROLES.Admin]}>
+            <Settings />
           </RouteProtector>
         ),
       },
 
-      {
-        path: "temp",
-        element: (
-          <RouteProtector allowedRoles={[ROLES.Staff, ROLES.User, ROLES.Admin]}>
-            <Temp />
-          </RouteProtector>
-        ),
-      },
     ],
   },
 

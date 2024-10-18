@@ -1,38 +1,49 @@
 import { useEffect, useState } from "react";
 import {
+  Badge,
   Box,
   Card,
-  Button,
-  DataList,
   Flex,
-  Code,
-  Separator,
+  IconButton,
+  Button,
   Heading,
+  Table,
+  Dialog,
   Text,
+  TextField,
+  Switch,
+  AlertDialog,
 } from "@radix-ui/themes";
-
-import { toast } from "react-toastify";
-import { faker } from "@faker-js/faker";
-
+import "yup-phone-lite";
+import { useFormik } from "formik";
+import handleAxiosError from "../../utils/handleAxiosError";
 import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
+import * as Yup from "yup";
+import useAuthService from "../../utils/authService";
+import useUserService from "../../utils/userService";
+import { useUserStore } from "../../store/userStore";
+import Loader from "../../components/Loader";
+import { toast } from "react-toastify";
 
-import { User } from "../../types/user";
-import { Patient, PatientBriefData } from "../../types/patient";
+// [●] ROLES
+const ROLES = {
+  User: 3,
+  Staff: 2,
+  Admin: 1,
+  AnyRole: 0,
+};
 
-import { useTimerStore } from "../../store/timerStore";
-
-
-// <✪> DeleteSVG
+// <●> DeleteSVG
 const DeleteSVG = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={800}
-    height={800}
-    fill="none"
+    width={18}
+    height={18}
+    fill="#990000"
     viewBox="0 0 24 24"
   >
     <path
-      stroke="#000"
+      stroke="#990000"
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
@@ -41,421 +52,455 @@ const DeleteSVG = () => (
   </svg>
 );
 
-// <✪> UpdateSVG
-const Update = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={800}
-    height={800}
-    aria-hidden="true"
-    viewBox="0 0 14 14"
-  >
-    <path d="M12.805 8.25q0 .04-.008.055-.5 2.093-2.094 3.394Q9.109 13 6.969 13q-1.14 0-2.207-.43t-1.903-1.226l-1.007 1.008q-.149.148-.352.148-.203 0-.352-.148Q1 12.203 1 12V8.5q0-.203.148-.352Q1.297 8 1.5 8H5q.203 0 .352.148.148.149.148.352 0 .203-.148.352l-1.07 1.07q.554.515 1.257.797Q6.242 11 7 11q1.047 0 1.953-.508.906-.508 1.453-1.398.086-.133.414-.914.063-.18.235-.18h1.5q.101 0 .175.074.075.074.075.176zM13 2v3.5q0 .203-.148.352Q12.703 6 12.5 6H9q-.203 0-.352-.148Q8.5 5.703 8.5 5.5q0-.203.148-.352L9.727 4.07Q8.57 3 7 3q-1.047 0-1.953.508-.906.508-1.453 1.398-.086.133-.414.914-.063.18-.235.18H1.391q-.102 0-.176-.074T1.14 5.75v-.055q.507-2.093 2.109-3.394Q4.852 1 7 1q1.14 0 2.219.434 1.078.433 1.914 1.222l1.015-1.008q.149-.148.352-.148.203 0 .352.148Q13 1.797 13 2z" />
-  </svg>
+// <●> AddButtonSVG
+const AddButtonSVG = () => (
+  <>
+    <svg
+      width="24px"
+      height="24px"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        id="Vector"
+        d="M6 12H12M12 12H18M12 12V18M12 12V6"
+        stroke="#eceeec"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </>
 );
 
-// <✪> CreateSVG
-const CreateSVG = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    xmlSpace="preserve"
-    width={24}
-    height={24}
-    viewBox="0 0 24 24"
-    fill="#e5e7eb"
-  >
-    <g id="Layer_2">
-      <path d="M12 13h-1v-1c0-.6-.4-1-1-1s-1 .4-1 1v1H8c-.6 0-1 .4-1 1s.4 1 1 1h1v1c0 .6.4 1 1 1s1-.4 1-1v-1h1c.6 0 1-.4 1-1s-.4-1-1-1z" />
-      <path d="M17 3h-6C8.8 3 7 4.8 7 7c-2.2 0-4 1.8-4 4v6c0 2.2 1.8 4 4 4h6c2.2 0 4-1.8 4-4 2.2 0 4-1.8 4-4V7c0-2.2-1.8-4-4-4zm-2 13v1c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2v-6c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v5zm4-3c0 1.1-.9 2-2 2v-4c0-2.2-1.8-4-4-4H9c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v6z" />
-    </g>
-  </svg>
-);
-
-// <✪> ReadSVG
-const ReadSVG = () => (
+// <●> UserIconSVG
+const UserIconSVG: React.FC<{ u_color: string }> = ({ u_color }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
+    fill="none"
     viewBox="0 0 24 24"
   >
     <path
-      fill="#e5e7eb"
-      d="M23 10h-.1a5 5 0 0 0-8.33-2.64C13.78 7.13 12.91 7 12 7s-1.78.12-2.57.36A5 5 0 0 0 1.1 10H1c-.55 0-1 .45-1 1s.45 1 1 1h.1a5 5 0 0 0 9.9-1c0-.66-.13-1.29-.36-1.87.43-.08.88-.13 1.36-.13s.94.04 1.36.13A5.002 5.002 0 1 0 22.9 12h.1c.55 0 1-.45 1-1s-.45-1-1-1zM6 14c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3zm12 0c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
-    />
-  </svg>
-);
-
-// <✪> LockSVG
-const LockSVG = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    xmlSpace="preserve"
-    width={24}
-    height={24}
-    viewBox="0 0 24 24"
-    fill="#e5e7eb"
-  >
-    <path
-      id="locksvg"
-      d="M12 4c1.7 0 3 1.3 3 3 0 .6.4 1 1 1s1-.4 1-1c0-2.8-2.2-5-5-5S7 4.2 7 7v3.1c-1.7.4-3 2-3 3.9v4c0 2.2 1.8 4 4 4h8c2.2 0 4-1.8 4-4v-4c0-2.2-1.8-4-4-4H9V7c0-1.7 1.3-3 3-3zm6 10v4c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2z"
+      fill={u_color}
+      fillRule="evenodd"
+      d="M6 8a6 6 0 1 1 12 0A6 6 0 0 1 6 8ZM5.43 16.902C7.057 16.223 9.224 16 12 16c2.771 0 4.935.22 6.559.898 1.742.727 2.812 1.963 3.382 3.76A1.03 1.03 0 0 1 20.959 22H3.035c-.69 0-1.188-.67-.978-1.335.568-1.797 1.634-3.033 3.374-3.762Z"
+      clipRule="evenodd"
     />
   </svg>
 ); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// [✪] generateMockPatient
-const generateMockPatient = (): Patient => {
-  return {
-    patient_name: faker.person.fullName(),
-    parent_name: faker.person.fullName(),
-    phone_number: "+55 77 99999-9999",
-    email: faker.internet.email(),
-    note: faker.lorem.sentence(),
-    country: faker.location.countryCode("alpha-2"), // Generates ISO country code
-    city: faker.location.city(),
-    birth_date: faker.date
-      .birthdate({ min: 18, max: 60, mode: "age" })
-      .toISOString()
-      .split("T")[0],
-    expiration_date: faker.date.future().toISOString().split("T")[0], // Generates a future date
-  };
-}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+// <●> AddUser
+const AddUser = () => {
+  const [open, setOpen] = useState(false);
 
-
-// ✪ Timer
-interface TimerProps {
-  initialSeconds: number;
-}
-
-const Timer: React.FC<TimerProps> = () => {
-
-  const timer = useTimerStore((state) => state.timer)
-  const updateTimer = useTimerStore((state) => state.updateTimer)
-
-  useEffect(() => {
-    if (timer > 0) {
-      const intervalId = setInterval(() => {
-        updateTimer();
-      }, 1000);
-
-      return () => clearInterval(intervalId); // Cleanup on component unmount
-    }
-  }, [timer, updateTimer]);
-
-  return (
-    <div>
-      <h1> Time remaining: {timer} seconds</h1>
-    </div>
-  );
-}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-
-// ★ Settings ────────────────────────────────────────────────────────➤
-const Settings = () => {
   const axios = useAxiosErrorInterceptor();
+  const { loadUsers } = useUserService();
 
-  // _PIN_ Consume timer store
-  const useTimer = useTimerStore((state) => state.useTimer)
-  const updateUseTimer = useTimerStore((state) => state.updateUseTimer)
+  const passwordRules = /^(?=.*\d).{8,}$/;
+  // min 8 characters, 1 upper case letter, 1 lower case letter, 1 numeric digit.
 
-  // ● user
-  const user: User = {
-    first_name: "Laoreno",
-    last_name: "Dunlap",
-    email: "dsfsdfsdfas@example.org",
-    password1: "$%+4uCI(6q",
-    password2: "$%+4uCI(6q",
-    user_group: 1,
-  };
+  const validationSchema = Yup.object({
+    first_name: Yup.string().required("Patient name is required"),
+    last_name: Yup.string().required("Parent name is required"),
+    email: Yup.string().email("Invalid email address"),
 
-  // [●] patients
-  const patients = Array.from({ length: 5 }, () => generateMockPatient());
+    password1: Yup.string()
+      .matches(passwordRules, {
+        message:
+          "Password must have: 1 numeric digit, and at least 8 characters",
+      })
+      .required("Required"),
+    password2: Yup.string()
+      .oneOf([Yup.ref("password1"), undefined], "Passwords must match")
+      .required("Required"),
+  });
 
-  // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+  const formik = useFormik({
+    initialValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      password1: "",
+      password2: "",
+      isAdmin: false, // Add checkbox initial value
+    },
 
-  // No need to handle errors here, as the interceptor will take care of them
+    validationSchema,
 
-  // (●) login
-  const login = async () => {
-    // _PIN_  user sample for login
+    onSubmit: async (values) => {
+      // _PIN_ ✦── Add User ✉ ──➤
 
-    updateUseTimer(true)
-    const sample = { email: "matthew26@example.com", password: "m_3YPcmG*#" };
-    const url = "/auth/login/";
-    const response = await axios.post(url, sample);
-    console.log("Response Data:", response.data); // [LOG] 
-    toast.success("Request successful");
-  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      console.log("start values:", values); // [LOG] Patient saved
+      const { isAdmin, ...rest } = values;
+      let group_id = 3;
+      if (isAdmin) {
+        group_id = 2;
+      }
+      const newValues = { ...rest, user_group: group_id };
+      console.log("end values:", newValues); // [LOG] Patient saved
 
+      try {
+        const url = "/auth/registration/";
+        const res = await axios.post(url, newValues);
+        console.log("response status:", res.status); // [LOG] response status
+        await loadUsers();
+        toast.success("User created!");
+      } catch (err) {
+        console.log("err", err); // [LOG] err
+        handleAxiosError(err);
+      }
+      setOpen(false);
+    },
+  });
 
-
-  // (●) logout
-  const logout = async () => {
-    const url = "/auth/logout/";
-    const response = await axios.post(url, {});
-    console.log("Response Status:", response.status); // [LOG] 
-    toast.success("Request successful");
-  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-
-
-  // (●) addUser
-  const addUser = async (body: User) => {
-    const url = "/auth/registration/";
-    const response = await axios.post(url, body);
-    console.log("Response Status:", response.status); // [LOG] 
-    toast.success("Request successful");
-  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-
-
-  // // (●) refreshToken
-  // const refreshToken = async () => {
-
-  //   console.log("rfereshToken Invoked "); // [LOG] refreshToken
-  //   resetTimer()
-  //   const url = "/auth/token/refresh/";
-  //   const response = await axios.post(url, {});
-  //   console.log("Response data:", response.data); // [LOG] 
-  //   console.log("Response status:", response.status); 
-
-  //   toast.success("Request successful");
-
-
-  // }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-  // {●} addPatient
-  const addPatient = async (body: Patient) => {
-    const url = "/patients/";
-    console.log("addPatient", body); //[LOG] addPatient ✦
-    const response = await axios.post(url, body);
-    console.log("Response Status:", response.status);
-    toast.success("Request successful");
-  }; //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-  // {●} getAllPatients
-  const getAllPatients = async () => {
-    const url = "/patients/";
-    const response = await axios.get(url);
-    console.log("Response Data:", response.data); // [LOG] 
-    toast.success("Request successful");
-  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-  // {●} retrievePatient
-  const retrievePatient = async (pk: string) => {
-    const url = "/patients/" + pk + "/";
-    const response = await axios.get(url);
-    console.log("Response Data:", response.data); // [LOG] 
-    toast.success("Request successful");
-  }; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-  // _PIN_ ───────────────────✦─DOM───➤
   return (
     <>
-      <Box
-        id="Canvas"
-        className="flex flex-col gap-10 justify-center items-center h-full w-full"
-      >
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Trigger>
+          {/* //<○>  AddButtonSVG */}
+          <IconButton color="orange" className="cursor-pointer">
+            <AddButtonSVG />
+          </IconButton>
+        </Dialog.Trigger>
 
-        {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+        <Dialog.Content maxWidth="450px">
+          <form onSubmit={formik.handleSubmit}>
+            <Dialog.Title>Add User</Dialog.Title>
 
-        <Card className="py-8 px-8 flex flex-col gap-2 items-center">
-          <Heading size="5" className="text-green-900 mb-4">
-            ── Token Timer ⏰ ──
-          </Heading>
+            <Flex align="center" justify={"between"} gap="2" my="5">
+              <Dialog.Description size="2">
+                Create a new User.
+              </Dialog.Description>
 
-          <Text className = 'text-green-900'>Access Token time  : 10 min</Text>
-          <Text className = 'text-green-900'>Refresh Token time : 20 min</Text>
-          <Text className = 'text-green-900'>REFRESHTOKEN ROTATION: false</Text>
+              <Flex gap="4">
+                <Text size="2" weight="bold">
+                  Admin
+                </Text>
+                <Switch
+                  checked={formik.values.isAdmin}
+                  onCheckedChange={(checked) =>
+                    formik.setFieldValue("isAdmin", checked)
+                  }
+                  name="isAdmin"
+                  size="2"
+                />
+              </Flex>
+            </Flex>
 
-          {useTimer && <Timer initialSeconds={20} />}
-        </Card>
+            <Flex direction="column" gap="3">
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  First Name
+                </Text>
+                <TextField.Root
+                  type="text"
+                  name="first_name"
+                  value={formik.values.first_name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.first_name && formik.errors.first_name && (
+                  <Text size="2" color="red">
+                    {formik.errors.first_name}
+                  </Text>
+                )}
+              </label>
 
-        {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Last Name
+                </Text>
+                <TextField.Root
+                  type="text"
+                  name="last_name"
+                  value={formik.values.last_name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.last_name && formik.errors.last_name && (
+                  <Text size="2" color="red">
+                    {formik.errors.last_name}
+                  </Text>
+                )}
+              </label>
 
-        <Card className="py-8 px-8 flex flex-col gap-2">
-          {/* // ✳  ✦─── User API ────────────────────────────────────────────────────────────➤  */}
-          <Heading size="5" className="text-red-900 mb-4">
-            ✦ ─── User API ──➤
-          </Heading>
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Email
+                </Text>
+                <TextField.Root
+                  type="email"
+                  name="email"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <Text size="2" color="red">
+                    {formik.errors.email}
+                  </Text>
+                )}
+              </label>
 
-          <DataList.Root>
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Password
+                </Text>
+                <TextField.Root
+                  type="password"
+                  name="password1"
+                  value={formik.values.password1}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
 
-            {/* // _PIN_ /auth/login/  */}
-            <DataList.Item className="items-center">
-              <DataList.Label minWidth="88px" className="items-center">
-                {/*// <○> LockSVG */}
-                <LockSVG />
+                {formik.touched.password1 && formik.errors.password1 && (
+                  <Text size="2" color="red">
+                    {formik.errors.password1}
+                  </Text>
+                )}
+              </label>
 
-                <Code variant="ghost" className="ml-4">
-                  peform login:
-                </Code>
-              </DataList.Label>
+              <label>
+                <Text as="div" size="2" mb="1" weight="bold">
+                  Confirm Password
+                </Text>
+                <TextField.Root
+                  type="password"
+                  name="password2"
+                  value={formik.values.password2}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
 
-              <DataList.Value>
-                <Flex align="center">
-                  <Code variant="ghost" className="mr-4">
-                    /auth/login/
-                  </Code>
+                {formik.touched.password2 && formik.errors.password2 && (
+                  <Text size="2" color="red">
+                    {formik.errors.password2}
+                  </Text>
+                )}
+              </label>
 
-                  {/*// (○) login */}
-                  <Button variant="ghost" onClick={login}>
-                    ↯
-                  </Button>
-                </Flex>
-              </DataList.Value>
-            </DataList.Item>
-            {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
+              {/* -------------------------------------------- */}
+            </Flex>
 
+            <Flex gap="3" mt="4" justify="end">
+              <Dialog.Close>
+                <Button variant="soft" color="gray">
+                  Cancel
+                </Button>
+              </Dialog.Close>
 
-
-            {/* // _PIN_ /auth/logout/  */}
-            <DataList.Item className="items-center">
-              <DataList.Label minWidth="88px" className="items-center">
-                {/*// <○> LockSVG */}
-                <LockSVG />
-
-                <Code variant="ghost" className="ml-4">
-                  peform logout:
-                </Code>
-              </DataList.Label>
-
-              <DataList.Value>
-                <Flex align="center">
-                  <Code variant="ghost" className="mr-4">
-                    /auth/logout/
-                  </Code>
-
-                  {/*// (○) logout */}
-                  <Button variant="ghost" onClick={logout}>
-                    ↯
-                  </Button>
-                </Flex>
-              </DataList.Value>
-            </DataList.Item>
-            {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
-
-
-
-
-            
-          
-
-
-            {/*  //. . . . . . . . . . . . . . . . . . . . . .  . . . . . */}
-            {/* // _PIN_  /auth/registration/  */}
-            <DataList.Item className="items-center">
-              <DataList.Label minWidth="88px" className="items-center">
-                {/*// <○> CreateSVG */}
-                <CreateSVG />
-                <Code variant="ghost" className="ml-4">
-                  add user:
-                </Code>
-              </DataList.Label>
-
-              <DataList.Value>
-                <Flex align="center">
-                  <Code variant="ghost" className="mr-4">
-                    /auth/registration/
-                  </Code>
-                  {/*// (○) addUser */}
-                  <Button variant="ghost" onClick={() => addUser(user)}>
-                    ↯
-                  </Button>
-                </Flex>
-              </DataList.Value>
-            </DataList.Item>
-          </DataList.Root>
-          <Separator orientation="horizontal" size="4" className=" my-4" />
-
-          {/* // ✳  ✦─── Patient API ──────────────────────────────────────────────────────➤   */}
-          <Heading size="5" className="text-red-900 my-4">
-            ✦ ─── Patient API ──➤
-          </Heading>
-
-          <DataList.Root>
-            {/* // _PIN_  // /patients/ : post */}
-            <DataList.Item className="items-center">
-              <DataList.Label minWidth="88px" className="items-center">
-                {/*// <○> CreateSVG */}
-                <CreateSVG />
-                <Code variant="ghost" className="ml-4">
-                  add patient:
-                </Code>
-              </DataList.Label>
-
-              <DataList.Value>
-                <Flex align="center">
-                  <Code variant="ghost" className="mr-4">
-                    /patients/ : post
-                  </Code>
-
-                  {/*// {○} addPatient */}
-                  <Button
-                    variant="ghost"
-                    onClick={() => addPatient(patients[0])}
-                  >
-                    ↯
-                  </Button>
-                </Flex>
-              </DataList.Value>
-            </DataList.Item>
-
-            {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
-            {/* // _PIN_  // /patients/ : get */}
-            <DataList.Item className="items-center">
-              <DataList.Label minWidth="88px" className="items-center">
-                {/*// <○> ReadSVG */}
-                <ReadSVG />
-                <Code variant="ghost" className="ml-4">
-                  get all patients:
-                </Code>
-              </DataList.Label>
-
-              <DataList.Value>
-                <Flex align="center">
-                  <Code variant="ghost" className="mr-4">
-                    /patients/ : get
-                  </Code>
-
-                  {/*// {○} getAllPatients */}
-                  <Button variant="ghost" onClick={getAllPatients}>
-                    ↯
-                  </Button>
-                </Flex>
-              </DataList.Value>
-            </DataList.Item>
-
-            {/* //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */}
-
-            {/* // _PIN_  // /patients/<int:pk>/ : get */}
-            <DataList.Item className="items-center">
-              <DataList.Label minWidth="88px" className="items-center">
-                {/*// <○> ReadSVG */}
-                <ReadSVG />
-                <Code variant="ghost" className="ml-4">
-                  retrieve patient:
-                </Code>
-              </DataList.Label>
-
-              <DataList.Value>
-                <Flex align="center">
-                  <Code variant="ghost" className="mr-4">
-                    {"/patients/<int:pk>/ : get"}
-                  </Code>
-
-                  {/*// {○} retrievePatient */}
-                  <Button variant="ghost" onClick={() => retrievePatient("22")}>
-                    ↯
-                  </Button>
-                </Flex>
-              </DataList.Value>
-            </DataList.Item>
-          </DataList.Root>
-        </Card>
-      </Box>
+              <Button type="submit">Save</Button>
+            </Flex>
+          </form>
+        </Dialog.Content>
+      </Dialog.Root>
     </>
   );
-}; // ★  ───────────────────────────────────────────────────────────────────────────────➤
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// <●> RemoveUser
+const RemoveUser = ({
+  user_id,
+  user_name,
+}: {
+  user_id: number | undefined;
+  user_name: string | undefined;
+}) => {
+  const axios = useAxiosErrorInterceptor();
+  const { loadUsers } = useUserService();
+  const { logout } = useAuthService();
+  const active_user = useUserStore((state) => state.user);
+
+  // _PIN_ ✦── peformRemove ✉ ──➤
+  const peformRemove = async () => {
+    try {
+      console.log("id is :", user_id); // [LOG]
+
+      const url = `/auth/deleteUser/${user_id}/`;
+      if (user_id == active_user?.pkid) {
+        logout();
+      }
+      const res = await axios.delete(url);
+      console.log("response :", res); // [LOG]
+
+      await loadUsers();
+    } catch (err) {
+      console.log("err", err); // [LOG]
+      handleAxiosError(err);
+    }
+  };
+
+  return (
+    <>
+      <AlertDialog.Root>
+        <AlertDialog.Trigger>
+          <IconButton
+            color="crimson"
+            variant="ghost"
+            size="1"
+            className="cursor-pointer"
+          >
+            {/* // <○> DeleteSVG */}
+            <DeleteSVG />
+          </IconButton>
+        </AlertDialog.Trigger>
+
+        <AlertDialog.Content maxWidth="500px">
+          {user_id == active_user?.pkid ? (
+            <>
+              <AlertDialog.Title>Delete your own user?</AlertDialog.Title>
+              <AlertDialog.Description size="2">
+                Are you sure you want to delete your user? This action is
+                permanent and cannot be undone.
+              </AlertDialog.Description>
+            </>
+          ) : (
+            <>
+              <AlertDialog.Title>Delete {user_name}</AlertDialog.Title>
+              <AlertDialog.Description size="2">
+                Are you sure you want to delete this user? This action is
+                permanent and cannot be undone.
+              </AlertDialog.Description>
+            </>
+          )}
+
+          <Flex gap="3" justify="end">
+            <AlertDialog.Cancel>
+              <Button variant="soft" color="gray">
+                Cancel
+              </Button>
+            </AlertDialog.Cancel>
+
+            <AlertDialog.Action>
+              <Button onClick={peformRemove} color="red">
+                Delete
+              </Button>
+            </AlertDialog.Action>
+          </Flex>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
+    </>
+  );
+}; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// <✪> UserTable
+const UserTable = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const { loadUsers } = useUserService();
+
+  const active_user = useUserStore((state) => state.user);
+  const userList = useUserStore((state) => state.userList);
+
+  useEffect(() => {
+    // _PIN_ ✦── reloadUsers ✉ ──➤
+    const reloadUsers = async () => {
+      console.log("active_user id", active_user?.pkid); //[LOG]
+      setLoading(true);
+      await loadUsers();
+      setLoading(false);
+    };
+
+    reloadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── DOM
+  return (
+    <>
+      <Card size="4">
+        <Box className="flex flex-col justify-center">
+          <Box className="flex justify-between items-center">
+            <Heading as="h3" size="6" trim="start" mb="2">
+              Users
+            </Heading>
+
+            {/* //<○> AddUser */}
+            <AddUser />
+          </Box>
+
+          <Text as="p" size="2" mb="5" color="gray">
+            Create or delete system users.
+          </Text>
+        </Box>
+
+        <Table.Root>
+          <Table.Body>
+            {loading ? (
+              <Table.Row>
+                <Table.RowHeaderCell>
+                  <Loader />
+                </Table.RowHeaderCell>
+              </Table.Row>
+            ) : (
+              userList.map((user, i) => (
+                <Table.Row key={i}>
+                  <Table.RowHeaderCell>
+                    {/* // <○> UserIconSVG */}
+                    {user.pkid == active_user?.pkid ? (
+                      <UserIconSVG u_color="green" />
+                    ) : user.user_group == ROLES["Admin"] ? (
+                      <UserIconSVG u_color="#ffa057" />
+                    ) : (
+                      <UserIconSVG u_color="gray" />
+                    )}
+                  </Table.RowHeaderCell>
+
+                  <Table.Cell>
+                    <Text size="2">{`${user?.first_name} ${user?.last_name}`}</Text>{" "}
+                  </Table.Cell>
+
+                  <Table.Cell>
+                    <Text size="2" color="gray">
+                      {user?.email}
+                    </Text>
+                  </Table.Cell>
+
+                  <Table.Cell>
+                    {user.user_group == ROLES["Admin"] ? (
+                      <Badge color="orange" variant="soft" radius="full">
+                        Admin
+                      </Badge>
+                    ) : (
+                      <Badge color="gray" variant="soft" radius="full">
+                        Staff
+                      </Badge>
+                    )}
+                  </Table.Cell>
+
+                  <Table.Cell>
+                    <Flex flexGrow="1" justify="end" align="center">
+                      {/* // <○> RemoveUser */}
+                      <RemoveUser
+                        user_id={user.pkid}
+                        user_name={user.first_name}
+                      />
+                    </Flex>
+                  </Table.Cell>
+                </Table.Row>
+              ))
+            )}
+          </Table.Body>
+        </Table.Root>
+      </Card>
+    </>
+  );
+}; // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+// ★ Settings ✦───────────────────────────────────────────────────➤
+const Settings = () => {
+  // ── ✦─DOM─➤
+  return (
+    <div
+      id="canvas"
+      className="flex flex-col gap-10 justify-center items-center p-6"
+    >
+      {/* //<○>  UserTable */}
+      <UserTable />
+    </div>
+  );
+}; // ★ ✦─────────────────────────────────────────────────────➤
 
 export default Settings;

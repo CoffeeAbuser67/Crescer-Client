@@ -58,7 +58,6 @@ const ROLES = {
   User: 3,
   Staff: 2,
   Admin: 1,
-  AnyRole: 0,
 };
 
 // <●> DeleteSVG
