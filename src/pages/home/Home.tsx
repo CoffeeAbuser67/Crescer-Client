@@ -41,6 +41,8 @@ import usePatientService from "../../utils/patientService";
 
 import { Patient, PatientBriefData } from "../../types/patient";
 
+import flowerIMG from "../../assets/no_stroke_flower.svg";
+
 // [●] PatientCardProps
 interface PatientCardProps {
   patient: PatientBriefData;
@@ -59,6 +61,25 @@ const ROLES = {
   AnyRole: 0,
 };
 
+// <●> DeleteSVG
+const DeleteSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={18}
+    height={18}
+    fill="#990000"
+    viewBox="0 0 24 24"
+  >
+    <path
+      stroke="#990000"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 7h16M6 10l1.701 9.358A2 2 0 0 0 9.67 21h4.662a2 2 0 0 0 1.968-1.642L18 10M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2H9V5Z"
+    />
+  </svg>
+);
+
 // <●> ReadSVG
 const ReadSVG = () => (
   <svg
@@ -68,7 +89,7 @@ const ReadSVG = () => (
     viewBox="0 0 24 24"
   >
     <path
-      fill="orange"
+      fill="#ffa057"
       d="M23 10h-.1a5 5 0 0 0-8.33-2.64C13.78 7.13 12.91 7 12 7s-1.78.12-2.57.36A5 5 0 0 0 1.1 10H1c-.55 0-1 .45-1 1s.45 1 1 1h.1a5 5 0 0 0 9.9-1c0-.66-.13-1.29-.36-1.87.43-.08.88-.13 1.36-.13s.94.04 1.36.13A5.002 5.002 0 1 0 22.9 12h.1c.55 0 1-.45 1-1s-.45-1-1-1zM6 14c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3zm12 0c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
     />
   </svg>
@@ -145,7 +166,7 @@ const UpdateSVG = () => (
     width={18}
     height={18}
     aria-hidden="true"
-    fill="orange"
+    fill="#ffa057"
     viewBox="0 0 14 14"
   >
     <path d="M12.805 8.25q0 .04-.008.055-.5 2.093-2.094 3.394Q9.109 13 6.969 13q-1.14 0-2.207-.43t-1.903-1.226l-1.007 1.008q-.149.148-.352.148-.203 0-.352-.148Q1 12.203 1 12V8.5q0-.203.148-.352Q1.297 8 1.5 8H5q.203 0 .352.148.148.149.148.352 0 .203-.148.352l-1.07 1.07q.554.515 1.257.797Q6.242 11 7 11q1.047 0 1.953-.508.906-.508 1.453-1.398.086-.133.414-.914.063-.18.235-.18h1.5q.101 0 .175.074.075.074.075.176zM13 2v3.5q0 .203-.148.352Q12.703 6 12.5 6H9q-.203 0-.352-.148Q8.5 5.703 8.5 5.5q0-.203.148-.352L9.727 4.07Q8.57 3 7 3q-1.047 0-1.953.508-.906.508-1.453 1.398-.086.133-.414.914-.063.18-.235.18H1.391q-.102 0-.176-.074T1.14 5.75v-.055q.507-2.093 2.109-3.394Q4.852 1 7 1q1.14 0 2.219.434 1.078.433 1.914 1.222l1.015-1.008q.149-.148.352-.148.203 0 .352.148Q13 1.797 13 2z" />
@@ -384,9 +405,15 @@ const RemovePatient = () => {
     <>
       <AlertDialog.Root>
         <AlertDialog.Trigger>
-          <Button color="crimson" variant="ghost">
-            Remove
-          </Button>
+          <IconButton
+            color="crimson"
+            variant="ghost"
+            size="1"
+            className="cursor-pointer"
+          >
+            {/* // <○> DeleteSVG */}
+            <DeleteSVG />
+          </IconButton>
         </AlertDialog.Trigger>
 
         <AlertDialog.Content maxWidth="500px">
@@ -415,32 +442,6 @@ const RemovePatient = () => {
   );
 }; //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// <●> PopoverAction
-const PopoverAction = () => (
-  <Popover.Root>
-    <Popover.Trigger>
-      <IconButton className="py-0" variant="ghost">
-        <DotsSVG />
-      </IconButton>
-    </Popover.Trigger>
-
-    <Popover.Content
-      size="1"
-      maxWidth="300px"
-      className="flex flex-col items-center"
-    >
-      <Button color="orange" variant="ghost">
-        Edit profile
-      </Button>
-
-      <Separator orientation="horizontal" size="4" className=" my-4" />
-
-      {/* // <○> RemovePatient*/}
-      <RemovePatient />
-    </Popover.Content>
-  </Popover.Root>
-); // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
 // <●> PatientCard
 const PatientCard: React.FC<PatientCardProps> = ({ patient }) => {
   const patientID = usePatientStore((state) => state.patientID);
@@ -466,13 +467,9 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient }) => {
           }`
         )}
       >
-        <Box className="flex justify-around items-center">
+        <Box className="flex justify-around items-center gap-4">
           <div className="flex items-center w-6/12">
-            <Avatar
-              size="3"
-              src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?&w=256&h=256&q=70&crop=focalpoint&fp-x=0.5&fp-y=0.3&fp-z=1&fit=crop"
-              fallback="T"
-            />
+            <Avatar size="3" src={flowerIMG} fallback="P" />
 
             <Text as="div" size="2" weight="bold" className=" ml-4">
               {`${patient.patient_name}`}
@@ -494,11 +491,10 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient }) => {
             </Badge>
           )}
 
-          {/* // (○) PopoverAction */}
           <ComponentProtector
-            allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
+            allowedRoles={[ROLES.Admin]}
           >
-            <PopoverAction />
+            <RemovePatient />
           </ComponentProtector>
         </Box>
       </Card>
@@ -543,7 +539,7 @@ const PatientListBox = () => {
 
         {/* // <○> AddPatient*/}
         <ComponentProtector
-          allowedRoles={[ROLES.Staff, ROLES.Admin, ROLES.User]}
+          allowedRoles={[ ROLES.Admin]}
         >
           <AddPatient />
         </ComponentProtector>
@@ -607,7 +603,6 @@ const PatientListBox = () => {
 
 // <✪> NoteBox
 const NoteBox = () => {
-  // HERE
   const patientDetails = usePatientStore((state) => state.patientDetails);
   const axios = useAxiosErrorInterceptor();
   const patientID = usePatientStore((state) => state.patientID);
@@ -624,14 +619,12 @@ const NoteBox = () => {
       try {
         const url = `/patientNote/${patientID}/`;
         const res = await axios.patch(url, values);
-        console.log("response status:", res.status); // [LOG] 
+        console.log("response status:", res.status); // [LOG]
         await loadPatientDetails();
-
       } catch (err) {
-        console.log("err", err); // [LOG] err  
+        console.log("err", err); // [LOG] err
         handleAxiosError(err);
       }
-
     },
   });
 
@@ -660,27 +653,30 @@ const NoteBox = () => {
           <Box pl="6">
             <Flex direction="column" gap="4">
               <Tabs.Root defaultValue="list">
-
                 <Tabs.List className=" flex items-center justify-between mb-7 max-w-[620px]">
                   <Text as="div" size="2" color="orange" mb="1">
                     Note:
                   </Text>
 
                   <Box className="flex items-center gap-2">
-                    {/* // <○> UpdateSVG*/}
+                    {/* // <○> ReadSVG*/}
                     <Tabs.Trigger value="list">
                       <ReadSVG />
                     </Tabs.Trigger>
 
-                    {/* // <○> ReadSVG*/}
-                    <Tabs.Trigger value="edit">
-                      <UpdateSVG />
-                    </Tabs.Trigger>
+                    {/* // <○> UpdateSVG*/}
+                    <ComponentProtector
+                      allowedRoles={[ ROLES.Admin]}
+                    >
+                      <Tabs.Trigger value="edit">
+                        <UpdateSVG />
+                      </Tabs.Trigger>
+                    </ComponentProtector>
                   </Box>
                 </Tabs.List>
 
-                <Tabs.Content className = "max-w-[620px]" value="list">
-                  <Text className = "whitespace-pre-wrap" size="2">
+                <Tabs.Content className="max-w-[620px]" value="list">
+                  <Text className="whitespace-pre-wrap" size="2">
                     {patientDetails?.note}
                   </Text>
                 </Tabs.Content>
@@ -904,15 +900,19 @@ const DetailsBox = () => {
           </Heading>
 
           <Box className="flex items-center gap-2">
-            {/* // <○> UpdateSVG*/}
+            {/* // <○> ReadSVG*/}
             <Tabs.Trigger value="list">
               <ReadSVG />
             </Tabs.Trigger>
 
-            {/* // <○> ReadSVG*/}
-            <Tabs.Trigger value="edit">
-              <UpdateSVG />
-            </Tabs.Trigger>
+            {/* // <○> UpdateSVG*/}
+            <ComponentProtector
+              allowedRoles={[ROLES.Admin]}
+            >
+              <Tabs.Trigger value="edit">
+                <UpdateSVG />
+              </Tabs.Trigger>
+            </ComponentProtector>
           </Box>
         </Tabs.List>
 
@@ -1007,8 +1007,8 @@ const DetailsBox = () => {
 const CreditCardDemo = () => {
   const patientDetails = usePatientStore((state) => state.patientDetails);
 
-  // (●) sliceNameIfNeed
-  const sliceNameIfNeed = (patientName: string) => {
+  // (●) truncateNameIfNeed
+  const truncateNameIfNeed = (patientName: string) => {
     if (patientName.length >= 23) {
       const slicedName = patientName.slice(0, 23);
       return `${slicedName}...`;
@@ -1017,7 +1017,10 @@ const CreditCardDemo = () => {
   };
 
   return (
-    <Card size="2" className="flex justify-center items-center h-full">
+    <Card
+      size="2"
+      className="flex flex-col justify-center items-center h-full gap-2"
+    >
       <div className="w-96 h-56 bg-gradient-to-r from-orange-500 to-orange-700 text-white rounded-xl shadow-lg p-6">
         <div className="flex justify-between">
           <h2 className="text-xl font-bold">Crescer Card</h2>
@@ -1030,7 +1033,7 @@ const CreditCardDemo = () => {
           <h4 className="text-sm uppercase tracking-wide">Card Owner</h4>
           <p className="text-xl font-mono mt-1">
             {patientDetails?.patient_name &&
-              `${sliceNameIfNeed(patientDetails.patient_name)} ✿`}
+              `${truncateNameIfNeed(patientDetails.patient_name)} ✿`}
           </p>
         </div>
 
@@ -1051,7 +1054,6 @@ const Home = () => {
 
   const { loadPatientDetails } = usePatientService();
   const patientID = usePatientStore((state) => state.patientID);
-  const patientDetails = usePatientStore((state) => state.patientDetails);
 
   useEffect(() => {
     // _PIN_ ✦── loadPatientDetails ✉ ───➤ ❀

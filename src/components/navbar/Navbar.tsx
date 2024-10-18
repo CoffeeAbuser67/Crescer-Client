@@ -111,7 +111,7 @@ const Navbar = () => {
     logout();
   };
 
-  //────────DOM─────➤
+  //──DOM──➤
   return (
     <Card id="navbar" variant="classic" className="mb-7 rounded-t-none">
       <div className=" flex justify-between items-center">
