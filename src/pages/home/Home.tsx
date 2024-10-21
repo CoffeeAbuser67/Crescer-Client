@@ -14,14 +14,13 @@ import {
   AlertDialog,
   Button,
   Tabs,
-  Inset,
+
   ScrollArea,
   TextField,
-  Grid,
-  DataList,
+
   TextArea,
   Dialog,
-  Popover,
+
   Separator,
 } from "@radix-ui/themes";
 import { useFormik } from "formik";
@@ -32,14 +31,13 @@ import "yup-phone-lite";
 import useAxiosErrorInterceptor from "../../hooks/useAxiosErrorInterceptor";
 
 import { usePatientStore } from "../../store/patientStore";
-import { axiosPrivate, axiosDefault } from "../../utils/axios";
 import Loader from "../../components/Loader";
 import handleAxiosError from "../../utils/handleAxiosError";
 import ComponentProtector from "../../components/guard/ComponentProtector";
 
 import usePatientService from "../../utils/patientService";
 
-import { Patient, PatientBriefData } from "../../types/patient";
+import { PatientBriefData } from "../../types/patient";
 
 import flowerIMG from "../../assets/no_stroke_flower.svg";
 
@@ -48,10 +46,6 @@ interface PatientCardProps {
   patient: PatientBriefData;
 }
 
-// [●] DetailsBoxProps
-interface DetailsBoxProps {
-  patient: Patient | null;
-}
 
 // [●] ROLES
 const ROLES = {
@@ -172,20 +166,6 @@ const UpdateSVG = () => (
   </svg>
 );
 
-// <●> DotsSVG
-const DotsSVG = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={24}
-    height={24}
-    viewBox="0 0 256 256"
-  >
-    <path
-      fill="#eceeec"
-      d="M76 128a12 12 0 1 1-12-12 12.014 12.014 0 0 1 12 12Zm52-12a12 12 0 1 0 12 12 12.014 12.014 0 0 0-12-12Zm64 0a12 12 0 1 0 12 12 12.014 12.014 0 0 0-12-12Z"
-    />
-  </svg>
-); //  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 // <●> AddPatient
 const AddPatient = () => {
