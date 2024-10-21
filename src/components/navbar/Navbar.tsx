@@ -50,9 +50,10 @@ const CrescerFlowerSVG = () => (
 
 // [●] ROLES
 const ROLES = {
-  User: 3,
-  Staff: 2,
-  Admin: 1,
+  User: 4,
+  Staff: 3,
+  Admin: 2,
+  Super: 1
 };
 
 // <●> LogoutSVG
@@ -99,7 +100,7 @@ const TabNavigation = () => {
           <Link to="/">Home</Link>
         </TabNav.Link>
 
-        <ComponentProtector allowedRoles={[ROLES.Admin]}>
+        <ComponentProtector allowedRoles={[ROLES.Admin, ROLES.Super]}>
           <TabNav.Link asChild active={location.pathname === "/settings"} >
             <Link to="/settings">Settings</Link>
           </TabNav.Link>

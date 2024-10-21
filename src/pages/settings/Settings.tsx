@@ -27,10 +27,10 @@ import { toast } from "react-toastify";
 
 // [●] ROLES
 const ROLES = {
-  User: 3,
-  Staff: 2,
-  Admin: 1,
-  AnyRole: 0,
+  User: 4,
+  Staff: 3,
+  Admin: 2,
+  Super: 1
 };
 
 // <●> DeleteSVG
@@ -133,6 +133,7 @@ const AddUser = () => {
       // _PIN_ ✦── Add User ✉ ──➤
 
       console.log("start values:", values); // [LOG] Patient saved
+
       const { isAdmin, ...rest } = values;
       let group_id = 3;
       if (isAdmin) {
@@ -441,7 +442,7 @@ const UserTable = () => {
                     {/* // <○> UserIconSVG */}
                     {user.pkid == active_user?.pkid ? (
                       <UserIconSVG u_color="green" />
-                    ) : user.user_group == ROLES["Admin"] ? (
+                    ) : (user.user_group == ROLES["Admin"] || user.user_group == ROLES["Super"] ) ? (
                       <UserIconSVG u_color="#ffa057" />
                     ) : (
                       <UserIconSVG u_color="gray" />
@@ -459,7 +460,7 @@ const UserTable = () => {
                   </Table.Cell>
 
                   <Table.Cell>
-                    {user.user_group == ROLES["Admin"] ? (
+                    {(user.user_group == ROLES["Admin"] || user.user_group == ROLES["Super"]) ? (
                       <Badge color="orange" variant="soft" radius="full">
                         Admin
                       </Badge>

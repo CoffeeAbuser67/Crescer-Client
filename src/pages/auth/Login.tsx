@@ -21,8 +21,8 @@ import handleAxiosError from "../../utils/handleAxiosError";
 import { toast } from "react-toastify";
 
 const defaultValues = {
-  email: "matthew26@example.com", // default email value
-  password: "m_3YPcmG*#", // default password value
+  email: "", // default email value
+  password: "", // default password value
 };
 
 // ★ Login ─────────────────────────────────────────────────────➤

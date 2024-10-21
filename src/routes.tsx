@@ -11,18 +11,22 @@ const Login = lazy(() => import("./pages/auth/Login"));
 
 // . . . . . . . . . ➤
 
+
+// [●] ROLES
 const ROLES = {
-  User: 3,
-  Staff: 2,
-  Admin: 1,
+  User: 4,
+  Staff: 3,
+  Admin: 2,
+  Super: 1
 };
+
 // . . . . . . . . . ➤
 
 const routes = [
   {
     path: "/",
     element: (
-      <RouteProtector allowedRoles={[ROLES.Staff, ROLES.User, ROLES.Admin]}>
+      <RouteProtector allowedRoles={[ROLES.Staff, ROLES.User, ROLES.Admin, ROLES.Super]}>
         <Default />
       </RouteProtector>
     ),
@@ -35,7 +39,7 @@ const routes = [
       {
         path: "settings",
         element: (
-          <RouteProtector allowedRoles={[ ROLES.Admin]}>
+          <RouteProtector allowedRoles={[ ROLES.Admin, ROLES.Super]}>
             <Settings />
           </RouteProtector>
         ),

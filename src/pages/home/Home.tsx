@@ -46,12 +46,12 @@ interface PatientCardProps {
   patient: PatientBriefData;
 }
 
-
 // [●] ROLES
 const ROLES = {
-  User: 3,
-  Staff: 2,
-  Admin: 1,
+  User: 4,
+  Staff: 3,
+  Admin: 2,
+  Super: 1
 };
 
 // <●> DeleteSVG
@@ -471,7 +471,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient }) => {
           )}
 
           <ComponentProtector
-            allowedRoles={[ROLES.Admin]}
+            allowedRoles={[ROLES.Admin, ROLES.Super]}
           >
             <RemovePatient />
           </ComponentProtector>
@@ -518,7 +518,7 @@ const PatientListBox = () => {
 
         {/* // <○> AddPatient*/}
         <ComponentProtector
-          allowedRoles={[ ROLES.Admin]}
+          allowedRoles={[ ROLES.Admin, ROLES.Super]}
         >
           <AddPatient />
         </ComponentProtector>
@@ -645,7 +645,7 @@ const NoteBox = () => {
 
                     {/* // <○> UpdateSVG*/}
                     <ComponentProtector
-                      allowedRoles={[ ROLES.Admin]}
+                      allowedRoles={[ ROLES.Admin, ROLES.Super]}
                     >
                       <Tabs.Trigger value="edit">
                         <UpdateSVG />
@@ -886,7 +886,7 @@ const DetailsBox = () => {
 
             {/* // <○> UpdateSVG*/}
             <ComponentProtector
-              allowedRoles={[ROLES.Admin]}
+              allowedRoles={[ROLES.Admin, ROLES.Super]}
             >
               <Tabs.Trigger value="edit">
                 <UpdateSVG />
